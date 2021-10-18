@@ -7,6 +7,42 @@ body {
     color: white;
 }
 
+#homePage {
+    background-color: #666666;
+    display: grid;
+    grid-template-areas: "nav nav"
+                         "welcome welcome"
+                         "newwksp loadwksp";
+    grid-template-columns: auto, auto;
+    grid-template-rows: 1fr, 2fr, 5fr;
+}
+
+.navbar button, .navbar a {
+    font-size: 2em;
+    text-transform: none;
+    text-decoration: bold;
+}
+
+#homePage nav {
+    grid-area: "nav";
+    background-color: red;
+}
+
+#homePage .welcome {
+    grid-area: "welcome";
+    background-color: green;
+}
+
+#homePage .new-workspace {
+    grid-area: "newwksp";
+    background-color: blue;
+}
+
+#homePage .load-workspace {
+    grid-area: "loadwksp";
+    background-color: yellow;
+}
+
 .page-container {
     margin-top: 75px;
 }
