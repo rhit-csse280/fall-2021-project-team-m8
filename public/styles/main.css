@@ -10,3 +10,27 @@ body {
 .page-container {
     margin-top: 75px;
 }
+
+#sideBar {
+
+    background-color: lightgray;
+
+}
+
+#wkspContent {
+
+    background-color: #666666;
+
+}
+
+.wksp-blank-page {
+
+    background-color: white;
+
+}
+
+.wksp-button {
+    
+}
+
+
