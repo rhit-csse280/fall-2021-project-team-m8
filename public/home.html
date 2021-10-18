@@ -7,11 +7,11 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Material+Icons">
   <link rel="stylesheet" href="styles/bootstrap-material-design.min.css">
   <link rel="stylesheet" href="styles/main.css">
-  <title>Squadm8</title>
+  <title>SquadM8</title>
 </head>
 
 <body id="homePage">
-  <nav class="navbar navbar-dark fixed-top">
+  <nav class="navbar navbar-dark">
     <button id="navMenuButton" type="button" class="btn text-light"><i class="material-icons fa-3x">menu</i></button>
     <button id="navLogOutButton" class="btn text-light">Home</button>
     <button id="navCreateButton" type="button" class="btn text-light">Create</button>
@@ -20,15 +20,30 @@
     <button id="navLogOutButton" type="button" class="btn text-light">Log Out</button>
   </nav>
   <div class="welcome">
-    <p>welcome</p>
+    <p>Welcome back, John! Enjoy an efficient session on SquadM8's Workspace</p>
   </div>
 
   <div class="new-workspace">
-    <p>new</p>
+    <div class="createwksp">
+      <p>Create a Workspace</p>
+      <input type="text" placeholder="Workplace name">
+      <input type="text" placeholder="Join code">
+      <br>
+      <button class="btn btn-outline">Create</button>
+    </div>
+    <div class="joinwksp">
+      <p>Join a Workspace</p>
+      <input type="text" placeholder="Join code">
+      <br>
+      <button class="btn btn-outline">Join</button>
+    </div>
   </div>
 
   <div class="load-workspace">
-    <p>load</p>
+    <p>Your workspaces</p>
+    <div class="workspaces-box">
+      <p>test</p>
+    </div>
   </div>
   <script src="scripts/jquery.min.js"></script>
   <script src="scripts/popper.js"></script>

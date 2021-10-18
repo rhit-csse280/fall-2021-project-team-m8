@@ -10,11 +10,8 @@ body {
 #homePage {
     background-color: #666666;
     display: grid;
-    grid-template-areas: "nav nav"
-                         "welcome welcome"
-                         "newwksp loadwksp";
-    grid-template-columns: auto, auto;
-    grid-template-rows: 1fr, 2fr, 5fr;
+    grid-template-columns: 50% 50%;
+    grid-template-rows: 1fr 3fr 5fr;
 }
 
 .navbar button, .navbar a {
@@ -24,23 +21,73 @@ body {
 }
 
 #homePage nav {
-    grid-area: "nav";
-    background-color: red;
+    grid-column-start: 1;
+    grid-column-end: 3;
+    grid-row-start: 1;
 }
 
 #homePage .welcome {
-    grid-area: "welcome";
-    background-color: green;
+    grid-column-start: 1;
+    grid-column-end: 3;
+    grid-row-start: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: #c4c4c4;
+    border: 2px solid #666666;
+    border-left: 4px;
+    border-right: 4px;
+}
+
+#homePage .welcome p {
+    font-size: 3em;
+    font-weight: 550;
+    text-align: center;
 }
 
 #homePage .new-workspace {
-    grid-area: "newwksp";
-    background-color: blue;
+    grid-column-start: 1;
+    grid-row-start: 3;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-size: 1.25em;
+    font-weight: 550;
+    background-color: #c4c4c4;
+    border: 2px solid #666666;
+    border-left: 4px;
+}
+
+#homePage .new-workspace button {
+    margin-top: 10px;
 }
 
 #homePage .load-workspace {
-    grid-area: "loadwksp";
-    background-color: yellow;
+    grid-column-start: 2;
+    grid-row-start: 3;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    background-color: #c4c4c4;
+    border: 2px solid #666666;
+    border-right: 4px;
+    font-size: 1.25em;
+    font-weight: 550;
+}
+
+.workspaces-box {
+    border: 1px black solid;
+    width: 75%;
+    height: 80%;
+}
+
+.workspaces-box p {
+    border-bottom: 1px gray solid;
 }
 
 .page-container {
