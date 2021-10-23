@@ -181,3 +181,15 @@ body {
     font-size: 1.5em;
     color: #800000;
 }
+
+/*
+  Landing Page
+*/
+#welcomeBanner {
+
+    background-color: #800000;
+    color: white;
+    border-radius: 10px;
+    font-size: 4em;
+
+}
