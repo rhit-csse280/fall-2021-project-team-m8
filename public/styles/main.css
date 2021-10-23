@@ -128,7 +128,6 @@ body {
 }
 
 .wksp-blank-page {
-    /* background-color: white; */
     background-color: white;
     flex: 1 0 40%;
     margin: 10px;
@@ -149,5 +148,36 @@ body {
     margin: 10px;
 
 }
+/*
+ Workspace Settings Flexbox
+*/
+#wkspSettingsContainer {
 
+    display: flex;
+    flex-direction: column;
+    margin: 10px;
 
+}
+
+.wksp-header {
+    font-size: 3em;
+    font-weight: 500;
+    color: #800000;
+    text-align: center;
+}
+
+.wksp-line {
+    margin: 0px 10px;
+}
+
+.wksp-subhead {
+    font-size: 2em;
+    font-weight: 400;
+    color: #800000;
+    margin: 5px;
+}
+
+.wksp-list-item {
+    font-size: 1.5em;
+    color: #800000;
+}
