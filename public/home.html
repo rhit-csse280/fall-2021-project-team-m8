@@ -13,14 +13,14 @@
 <body id="homePage">
   <nav class="navbar navbar-dark">
     <button id="navMenuButton" type="button" class="btn text-light"><i class="material-icons fa-3x">menu</i></button>
-    <button id="navLogOutButton" class="btn text-light">Home</button>
+    <button id="navHomeButton" class="btn text-light">Home</button>
     <button id="navCreateButton" type="button" class="btn text-light">Create</button>
     <button id="navJoinButton" type="button" class="btn text-light">Join</button>
-    <button id="navLogOutButton" class="btn text-light">Hey, John S.</button>
+    <button id="navMessage" class="btn text-light">Hey, John S.</button>
     <button id="navLogOutButton" type="button" class="btn text-light">Log Out</button>
   </nav>
   <div class="welcome">
-    <p>Welcome back, John! Enjoy an efficient session on SquadM8's Workspace</p>
+    <p>Welcome back! Enjoy an efficient session on SquadM8's Workspace</p>
   </div>
 
   <div class="new-workspace">
@@ -42,7 +42,7 @@
   <div class="load-workspace">
     <p>Your workspaces</p>
     <div class="workspaces-box">
-      <p>My workspace</p>
+      <a id="workspaceName">My workspace</a>
     </div>
   </div>
   <script src="scripts/jquery.min.js"></script>
