@@ -189,7 +189,27 @@ body {
 
     background-color: #800000;
     color: white;
-    border-radius: 10px;
+    border-radius: 20px;
     font-size: 4em;
+    padding: 10px;
+    text-align: center;
+
+}
+
+#landingPageContent {
+
+    background-color: white;
+    color: #800000;
+    text-align: center;
+    margin-top: 20px;
+    border-radius: 20px;
+
+}
+
+#landingPageContent .landing-page-btn {
+
+    color: #800000;
+    border-color: #800000;
+    background-color: rgba(128, 0, 0, 0.2);
 
 }
