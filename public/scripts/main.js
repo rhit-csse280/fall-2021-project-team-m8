@@ -1,7 +1,3 @@
-this file has some text
-
-jajaja
-
 /** namespace. */
 var rhit = rhit || {};
 
