@@ -3,24 +3,37 @@
  * in JavaScript.
  * 
  * Sourced from https://learnersbucket.com/tutorials/data-structures/avl-tree-in-javascript/
+ * 
+ * Refactored into an exportable module by Jack Thorp
  */
 
 
+module.exports = class AVLTree {
 
-// Create node
-const Node = function(item){
-    this.item = item;
-    this.height = 1;
-    this.left = null;
-    this.right = null;
-  }
-  
-  //AVL Tree
-  const AVLTree = function(){
-    let root = null;
+    constructor() {
+        /**@type {Node} */
+        this.root = null;
+    }
+
+    /**
+     * @typedef {Object} Node
+     * @property {*} item
+     * @property {number} height
+     * @property {Node} left
+     * @property {Node} right
+     * 
+     * @param {*} item 
+     */
+    Node(item) {        
+        return {item: item, height: 1, left: null, right: null};
+    }
     
-    //return height of the node
-    this.height = (N) => {
+    /**
+     * return height of the node
+     * @param {Node} N 
+     * @returns {number}
+     */
+    height(N) {
       if (N === null){
         return 0;
       }
@@ -28,8 +41,12 @@ const Node = function(item){
       return N.height;
     }
     
-    //right rotate
-    this.rightRotate = (y) => {
+    /**
+     * right rotate
+     * @param {Node} y 
+     * @returns {Node}
+     */
+    rightRotate(y) {
       let x = y.left;
       let T2 = x.right;
       x.right = y;
@@ -39,8 +56,12 @@ const Node = function(item){
       return x;
     }
     
-    //left rotate
-    this.leftRotate = (x) => {
+    /**
+     * left rotate
+     * @param {Node} x 
+     * @returns {Node}
+     */
+    leftRotate(x) {
       let y = x.right;
       let T2 = y.left;
       y.left = x;
@@ -50,8 +71,12 @@ const Node = function(item){
       return y;
     }
     
-    // get balance factor of a node
-    this.getBalanceFactor = (N) => {
+    /**
+     * get balance factor of a node
+     * @param {Node} N 
+     * @returns {number}
+     */
+    getBalanceFactor(N) {
       if (N == null){
         return 0;
       }
@@ -59,9 +84,13 @@ const Node = function(item){
       return this.height(N.left) - this.height(N.right);
     }
     
-    
-    // helper function to insert a node
-    const insertNodeHelper = (node, item) => {
+    /**
+     * helper function to insert a node
+     * @param {Node} node 
+     * @param {*} item 
+     * @returns {Node}
+     */
+    insertNodeHelper(node, item) {
   
       // find the position and insert the node
       if (node === null){
@@ -104,13 +133,17 @@ const Node = function(item){
     }
     
     // insert a node
-    this.insertNode = (item) => {
+    insertNode(item) {
       // console.log(root);
       root = insertNodeHelper(root, item);
     }
     
-    //get node with minimum value
-    this.nodeWithMimumValue = (node) => {
+    /**
+     * get node with minimum value
+     * @param {Node} node 
+     * @returns {Node}
+     */
+    nodeWithMimumValue(node) {
       let current = node;
       while (current.left !== null){
         current = current.left;
@@ -118,8 +151,13 @@ const Node = function(item){
       return current;
     }
     
-    // delete helper
-    const deleteNodeHelper = (root, item) => {
+    /**
+     * delete helper
+     * @param {Node} root 
+     * @param {*} item 
+     * @returns {Node}
+     */
+    deleteNodeHelper(root, item) {
   
       // find the node to be deleted and remove it
       if (root == null){
@@ -178,20 +216,21 @@ const Node = function(item){
     }
     
     //delete a node
-    this.deleteNode = (item) => {
+    deleteNode(item) {
       root = deleteNodeHelper(root, item);
     }
     
     // print the tree in pre - order
-    this.preOrder = () => {
-      preOrderHelper(root);
+    preOrder() {
+      preOrderHelper(this.root);
     }
     
-    const preOrderHelper = (node) => {
+    preOrderHelper(node) {
       if (node) {
         console.log(node.item);
         preOrderHelper(node.left);
         preOrderHelper(node.right);
       }
     }
-  }
+}
+

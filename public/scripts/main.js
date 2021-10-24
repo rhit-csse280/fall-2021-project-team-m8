@@ -1,3 +1,4 @@
+const {AVLTree} = require('./avltree.js');
 /**
  * @fileoverview
  * Provides the JavaScript interactions for all pages.
@@ -5,6 +6,8 @@
  * @author 
  * PUT_YOUR_NAME_HERE
  */
+
+let myTree = new AVLTree.AVLTree();
 
 /** namespace. */
 var rhit = rhit || {};

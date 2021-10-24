@@ -10,7 +10,7 @@
   <title> SquadM8 Workspace</title>
 </head>
 
-<body>
+<body id="wksp">
 
   <!-- Top navbar -->
   <nav class="navbar navbar-dark fixed-top">
@@ -22,35 +22,37 @@
     <button id="navLogOutButton" type="button" class="btn text-light">Log Out</button>
   </nav>
 
+  <!-- #workspacePage > #wkspContent > #sideBar/.wksp-blank-page/.wksp-settings -->
+
   <!-- Main Page Container -->
   <div id="workspacePage" class="container page-container">
 
     <div id="wkspContent">
 
       <nav id="sideBar" class="nav flex-column">
-
         <button id="wkspInvite" type="button" class="btn btn-primary btn-outline-primary wksp-button">
           Invite
-        </button>
-  
+        </button> 
         <button id="wkspText" type="button" class="btn btn-primary btn-outline-primary wksp-button">
           Text
-        </button>
-  
+        </button>  
         <button id="wkspPDF" type="button" class="btn btn-primary btn-outline-primary wksp-button">
           PDF
-        </button>
-  
+        </button>  
         <button id="wkspCanvas" type="button" class="btn btn-primary btn-outline-primary wksp-button">
           Canvas
-        </button>
-  
+        </button>  
       </nav>
 
       <!-- Work page -->
       <div class="wksp-blank-page">
-        <embed src="./files/richtext.rtf" type="text/rich" width="100%" height="100%">
+        <embed src="https://firebasestorage.googleapis.com/v0/b/pickens-thorp-squadm8-csse280.appspot.com/o/text.txt?alt=media&token=5242db20-af80-47e7-9e73-5a6a28693b24" type="text/plain" width="100%" height="100%">
       </div>
+
+      <!-- 
+        https://firebasestorage.googleapis.com/v0/b/pickens-thorp-squadm8-csse280.appspot.com/o/text.txt?alt=media&token=5242db20-af80-47e7-9e73-5a6a28693b24
+
+      -->
 
       <!-- Workspace settings -->
       <div class="wksp-settings">
