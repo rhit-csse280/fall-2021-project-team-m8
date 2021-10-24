@@ -80,6 +80,20 @@ body {
     font-weight: 550;
 }
 
+@media (max-width: 992px) {
+    #homePage {
+        grid-template-columns: auto;
+    }
+
+    #homePage .new-workspace {
+        display: hidden;
+    }
+}
+
+@media (max-width: 576px) {
+
+}
+
 .workspaces-box {
     border: 1px black solid;
     width: 75%;
