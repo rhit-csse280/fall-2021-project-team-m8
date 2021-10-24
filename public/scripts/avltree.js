@@ -7,6 +7,17 @@
  * Refactored into an exportable module by Jack Thorp
  */
 
+/**
+ * TODO: This is only a binary search tree. It needs to be refactored
+ *        so that each node holds its INDEX and a VALUE.
+ * 
+ *        Step 1. Add 'index' field to node
+ * 
+ *        Step 2. Add method to track index updates
+ * 
+ *        Step 3. Refactor insertion/deletion to search by index instead
+ *                of item
+ */
 
 module.exports = class AVLTree {
 
@@ -225,6 +236,10 @@ module.exports = class AVLTree {
       preOrderHelper(this.root);
     }
     
+    /**
+     * 
+     * @param {Node} node 
+     */
     preOrderHelper(node) {
       if (node) {
         console.log(node.item);
