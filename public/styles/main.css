@@ -197,6 +197,20 @@ body {
     color: #800000;
 }
 
+.wksp-settings-btn {
+    width: 75px;
+    height: 75px;
+    background-color: #666666;
+    margin: 10px;
+    
+}
+
+.wksp-btn-row {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    
+}
 
 /*
   Landing Page
