@@ -1,3 +1,5 @@
+import { PDFDocument } from "pdf-lib";
+
 /** namespace. */
 var rhit = rhit || {};
 
@@ -31,6 +33,27 @@ function htmlToElement(html) {
 	return template.content.firstChild;
 }
 
+rhit.PDFDocHandler = class {
+	/**
+	 * 
+	 * @typedef {Object} PDFDocHandlerOptions
+	 * @property {boolean} makeNew
+	 * @property {String} url 
+	 * 
+	 * @param {PDFDocHandlerOptions} options 
+	 */
+	constructor(options) {
+
+		if (options.makeNew) {
+			
+		} else {
+			this.pdfDoc = await PDFDocument.load(url);
+			this.pages = this.pdfDoc.pages();
+		}
+		
+	}
+}
+
 rhit.HomePageController = class {
 	constructor() {
 		document.querySelector("#navMessage").innerHTML = `Hey, ${rhit.fbAuthManager.uid}`;
@@ -45,6 +68,9 @@ rhit.HomePageController = class {
 
 rhit.WorkspacePageController = class {
 	constructor() {
+		/*
+		  Adding listeners to Workspace Page Buttons
+		*/
 		document.querySelector("#navMessage").innerHTML = `Hey, ${rhit.fbAuthManager.uid}`;
 		document.querySelector("#navHomeButton").onclick = (event) => {
 			window.location.href = "/home.html";
@@ -53,24 +79,18 @@ rhit.WorkspacePageController = class {
 			rhit.fbAuthManager.signOut();
 		}
 		document.querySelector("#wkspText").addEventListener('click', ()=> {
-
 			document.querySelector(".wksp-blank-page").innerHTML = `${rhit.wkspConstants.TEXT_HTML_START}
 																	${rhit.wkspConstants.TEXT_URL}
 																	${rhit.wkspConstants.TEXT_HTML_END}`;
-
 		});
 		document.querySelector("#wkspCanvas").addEventListener('click', ()=> {
-
 			document.querySelector(".wksp-blank-page").innerHTML = `${rhit.wkspConstants.CANVAS_HTML}`;
 			this.draw();
-
 		});
 		document.querySelector("#wkspPDF").addEventListener('click', ()=> {
-
 			document.querySelector(".wksp-blank-page").innerHTML = `${rhit.wkspConstants.PDF_HTML_START}
 																	${rhit.wkspConstants.PDF_URL}
 																	${rhit.wkspConstants.PDF_HTML_END}`;
-
 		});
 
 		
