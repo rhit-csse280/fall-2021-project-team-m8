@@ -11,40 +11,60 @@
 </head>
 
 <body id="homePage">
-  <nav class="navbar navbar-dark">
-    <button id="navMenuButton" type="button" class="btn text-light"><i class="material-icons fa-3x">menu</i></button>
-    <button id="navHomeButton" class="btn text-light">Home</button>
-    <button id="navCreateButton" type="button" class="btn text-light">Create</button>
-    <button id="navJoinButton" type="button" class="btn text-light">Join</button>
-    <button id="navMessage" class="btn text-light">Hey, John S.</button>
-    <button id="navLogOutButton" type="button" class="btn text-light">Log Out</button>
-  </nav>
-  <div class="welcome">
-    <p>Welcome back! Enjoy an efficient session on SquadM8's Workspace</p>
+  <div class="bmd-layout-container bmd-drawer-f-l bmd-drawer-overlay">
+    <header class="bmd-layout-header">
+      <div class="navbar navbar-dark bg-faded fixed-top justify-content-start">
+        <button class="navbar-toggler" type="button" data-toggle="drawer" data-target="#dw-s2">
+          <span class="sr-only">Toggle drawer</span>
+          <i class="material-icons">menu</i>
+        </button>
+        <button id="navHomeButton" class="btn text-light">Home</button>
+        <button id="navCreateButton" type="button" class="btn text-light">Create</button>
+        <button id="navJoinButton" type="button" class="btn text-light">Join</button>
+        <button id="navMessage" class="btn text-light">Hey, John S.</button>
+        <button id="navLogOutButton" type="button" class="btn text-light">Log Out</button>
+      </div>
+    </header>
+    <div id="dw-s2" class="bmd-layout-drawer bg-faded">
+      <div class="button-group">
+        <button>Home</button>
+        <button>Create</button>
+        <button>Join</button>
+        <button>Invite</button>
+      </div>
+    </div>
+    <main class="bmd-layout-content">
+      <div class="welcome">
+        <p>Welcome back! Enjoy an efficient session on SquadM8's Workspace</p>
+      </div>
+    
+      <div class="new-workspace">
+        <div class="createwksp">
+          <p>Create a Workspace</p>
+          <input type="text" placeholder="Workplace name">
+          <input type="text" placeholder="Join code">
+          <br>
+          <button class="btn btn-outline">Create</button>
+        </div>
+        <div class="joinwksp">
+          <p>Join a Workspace</p>
+          <input type="text" placeholder="Join code">
+          <br>
+          <button class="btn btn-outline">Join</button>
+        </div>
+      </div>
+    
+      <div class="load-workspace">
+        <p>Your workspaces</p>
+        <div class="workspaces-box">
+          <a id="workspaceName">My workspace</a>
+        </div>
+      </div>
+    </main>
   </div>
 
-  <div class="new-workspace">
-    <div class="createwksp">
-      <p>Create a Workspace</p>
-      <input type="text" placeholder="Workplace name">
-      <input type="text" placeholder="Join code">
-      <br>
-      <button class="btn btn-outline">Create</button>
-    </div>
-    <div class="joinwksp">
-      <p>Join a Workspace</p>
-      <input type="text" placeholder="Join code">
-      <br>
-      <button class="btn btn-outline">Join</button>
-    </div>
-  </div>
 
-  <div class="load-workspace">
-    <p>Your workspaces</p>
-    <div class="workspaces-box">
-      <a id="workspaceName">My workspace</a>
-    </div>
-  </div>
+
   <script src="scripts/jquery.min.js"></script>
   <script src="scripts/popper.js"></script>
   <script src="scripts/bootstrap-material-design.js"></script>
