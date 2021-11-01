@@ -1,4 +1,4 @@
-import { PDFDocument } from "pdf-lib";
+// import { PDFDocument } from "pdf-lib";
 
 /** namespace. */
 var rhit = rhit || {};
@@ -33,26 +33,26 @@ function htmlToElement(html) {
 	return template.content.firstChild;
 }
 
-rhit.PDFDocHandler = class {
-	/**
-	 * 
-	 * @typedef {Object} PDFDocHandlerOptions
-	 * @property {boolean} makeNew
-	 * @property {String} url 
-	 * 
-	 * @param {PDFDocHandlerOptions} options 
-	 */
-	constructor(options) {
+// rhit.PDFDocHandler = class {
+// 	/**
+// 	 * 
+// 	 * @typedef {Object} PDFDocHandlerOptions
+// 	 * @property {boolean} makeNew
+// 	 * @property {String} url 
+// 	 * 
+// 	 * @param {PDFDocHandlerOptions} options 
+// 	 */
+// 	constructor(options) {
 
-		if (options.makeNew) {
+// 		if (options.makeNew) {
 			
-		} else {
-			this.pdfDoc = await PDFDocument.load(url);
-			this.pages = this.pdfDoc.pages();
-		}
+// 		} else {
+// 			this.pdfDoc = await PDFDocument.load(url);
+// 			this.pages = this.pdfDoc.pages();
+// 		}
 		
-	}
-}
+// 	}
+// }
 
 rhit.HomePageController = class {
 	constructor() {
