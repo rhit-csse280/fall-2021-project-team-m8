@@ -1,4 +1,4 @@
-// import { PDFDocument } from "pdf-lib";
+const { PDFDocument } = require("pdf-lib");
 
 /** namespace. */
 var rhit = rhit || {};
@@ -33,26 +33,28 @@ function htmlToElement(html) {
 	return template.content.firstChild;
 }
 
-// rhit.PDFDocHandler = class {
-// 	/**
-// 	 * 
-// 	 * @typedef {Object} PDFDocHandlerOptions
-// 	 * @property {boolean} makeNew
-// 	 * @property {String} url 
-// 	 * 
-// 	 * @param {PDFDocHandlerOptions} options 
-// 	 */
-// 	constructor(options) {
+/**
+ * 
+ * @returns {rhit.PDFDocHandler}
+ */
+rhit.PDFHandlerHelper = async function(url) {
+	let pdfDoc = await PDFDocument.load(url);
 
-// 		if (options.makeNew) {
-			
-// 		} else {
-// 			this.pdfDoc = await PDFDocument.load(url);
-// 			this.pages = this.pdfDoc.pages();
-// 		}
+	
+
+}
+
+rhit.PDFDocHandler = class {
+	/**
+	 *
+	 * @param {PDFDocHandlerOptions} options 
+	 */
+	constructor(pdfDoc) {
+
+		this.pdfDoc = pdfDoc;
 		
-// 	}
-// }
+	}
+}
 
 rhit.HomePageController = class {
 	constructor() {
