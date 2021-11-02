@@ -11,83 +11,96 @@
 </head>
 
 <body id="wksp">
-
-  <!-- Top navbar -->
-  <nav class="navbar navbar-dark fixed-top">
-    <button id="navMenuButton" type="button" class="btn text-light"><i class="material-icons fa-3x">menu</i></button>
-    <button id="navHomeButton" class="btn text-light">Home</button>
-    <button id="navCreateButton" type="button" class="btn text-light">Create</button>
-    <button id="navJoinButton" type="button" class="btn text-light">Join</button>
-    <button id="navMessage" class="btn text-light">Hey, John S.</button>
-    <button id="navLogOutButton" type="button" class="btn text-light">Log Out</button>
-  </nav>
-
-  <!-- #workspacePage > #wkspContent > #sideBar/.wksp-blank-page/.wksp-settings -->
-
-  <!-- Main Page Container -->
-  <div id="workspacePage" class="container page-container">
-
-    <div id="wkspContent">
-
-      <nav id="sideBar" class="nav flex-column">
-        <button id="wkspInvite" type="button" class="btn btn-primary btn-outline-primary wksp-button">
-          Invite
-        </button> 
-        <button id="wkspText" type="button" class="btn btn-primary btn-outline-primary wksp-button">
-          Text
-        </button>  
-        <button id="wkspPDF" type="button" class="btn btn-primary btn-outline-primary wksp-button">
-          PDF
-        </button>  
-        <button id="wkspCanvas" type="button" class="btn btn-primary btn-outline-primary wksp-button">
-          Canvas
-        </button>  
-      </nav>
-
-      <!-- Work page -->
-      <div class="wksp-blank-page">
-        
-        <canvas id="testCanvas" height="100%" width="100%"></canvas>
-
+  <div class="bmd-layout-container bmd-drawer-f-l bmd-drawer-overlay">
+    <header class="bmd-layout-header">
+      <div class="navbar navbar-dark bg-faded fixed-top justify-content-start">
+        <button class="navbar-toggler" type="button" data-toggle="drawer" data-target="#dw-s2">
+          <span class="sr-only">Toggle drawer</span>
+          <i class="material-icons">menu</i>
+        </button>
+        <button id="navHomeButton" class="btn text-light">Home</button>
+        <button id="navCreateButton" type="button" class="btn text-light">Create</button>
+        <button id="navJoinButton" type="button" class="btn text-light">Join</button>
+        <button id="navMessage" class="btn text-light">Hey, John S.</button>
+        <button id="navLogOutButton" type="button" class="btn text-light">Log Out</button>
       </div>
-
-      <!-- Workspace settings -->
-      <div class="wksp-settings">
-        <!-- TODO: make wksp-settings flex -> direction=columns
-                   headers are divs,
-                   file list is links?
-                   buttons are in a new flex container -> direction = row -->
-        <div id="wkspSettingsContent">
-
-          <div class="wksp-header">My Workspace</div>
-          <hr class="wksp-line">
-          <div class="wksp-subhead">Members</div>
-          <div class="wksp-list-item">John Smith</div>
-          <div class="wksp-list-item">Joe Shmo</div>
-          <hr class="wksp-line">
-          <div class="wksp-subhead">Files</div>
-          <div class="wksp-list-item">Text.txt</div>
-          <div class="wksp-list-item">PDF.pdf</div>
-          <div class="wksp-list-item">Canvas.cnv</div>
-          <hr class="wksp-line">
-          <div class="wksp-subhead">Workspace Options</div>
-          <div class="wksp-btn-row">
-            <div class="wksp-settings-btn"></div>
-            <div class="wksp-settings-btn"></div>
-            <div class="wksp-settings-btn"></div>
-          </div>
-          <div class="wksp-btn-row">
-            <div class="wksp-settings-btn"></div>
-            <div class="wksp-settings-btn"></div>
-            <div class="wksp-settings-btn"></div>
-          </div>
-
-        </div>
+    </header>
+    <div id="dw-s2" class="bmd-layout-drawer bg-faded">
+      <div class="button-group">
+        <button id="wkspDrawerHomeButton">Home</button>
+        <button>Create</button>
+        <button>Join</button>
+        <button>Invite</button>
       </div>
-
     </div>
+    <main class="bmd-layout-content">
+      <div id="workspacePage" class="container page-container">
 
+        <div id="wkspContent">
+    
+          <nav id="sideBar" class="nav flex-column">
+            <button id="wkspInvite" type="button" class="btn btn-primary btn-outline-primary wksp-button">
+              Invite
+            </button> 
+            <button id="wkspText" type="button" class="btn btn-primary btn-outline-primary wksp-button">
+              Text
+            </button>  
+            <button id="wkspPDF" type="button" class="btn btn-primary btn-outline-primary wksp-button">
+              PDF
+            </button>  
+            <button id="wkspCanvas" type="button" class="btn btn-primary btn-outline-primary wksp-button">
+              Canvas
+            </button>  
+          </nav>
+    
+          <!-- Work page -->
+          <div class="wksp-blank-page">
+            
+            <canvas id="testCanvas" height="100%" width="100%"></canvas>
+    
+          </div>
+    
+          <!-- Workspace settings -->
+          <div class="wksp-settings">
+            <!-- TODO: make wksp-settings flex -> direction=columns
+                       headers are divs,
+                       file list is links?
+                       buttons are in a new flex container -> direction = row -->
+            <div id="wkspSettingsContent">
+    
+              <div class="wksp-header">My Workspace</div>
+              <hr class="wksp-line">
+              <div class="wksp-subhead">Members</div>
+              <div class="wksp-list-item">John Smith</div>
+              <div class="wksp-list-item">Joe Shmo</div>
+              <hr class="wksp-line">
+              <div class="wksp-subhead">Files</div>
+              <div class="wksp-list-item">Text.txt</div>
+              <div class="wksp-list-item">PDF.pdf</div>
+              <div class="wksp-list-item">Canvas.cnv</div>
+              <hr class="wksp-line">
+              <div class="wksp-subhead">Workspace Options</div>
+              <div class="wksp-btn-row">
+                <div class="wksp-settings-btn"></div>
+                <div class="wksp-settings-btn"></div>
+                <div class="wksp-settings-btn"></div>
+              </div>
+              <div class="wksp-btn-row">
+                <div class="wksp-settings-btn"></div>
+                <div class="wksp-settings-btn"></div>
+                <div class="wksp-settings-btn"></div>
+              </div>
+    
+            </div>
+          </div>
+    
+        </div>
+    
+      </div>
+    </main>
   </div>
+
+  
   <script src="scripts/jquery.min.js"></script>
   <script src="scripts/popper.js"></script>
   <script src="scripts/bootstrap-material-design.js"></script>

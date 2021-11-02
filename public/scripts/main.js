@@ -71,6 +71,9 @@ rhit.WorkspacePageController = class {
 		/*
 		  Adding listeners to Workspace Page Buttons
 		*/
+		document.querySelector("#wkspDrawerHomeButton").onclick = (event) => {
+			window.location.href = "/home.html";
+		}
 		document.querySelector("#navMessage").innerHTML = `Hey, ${rhit.fbAuthManager.uid}`;
 		document.querySelector("#navHomeButton").onclick = (event) => {
 			window.location.href = "/home.html";
