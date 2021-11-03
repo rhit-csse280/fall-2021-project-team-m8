@@ -236,8 +236,28 @@ body {
     float: right;
 }
 
+.wksp-mobile-button-group {
+    display: inline-flex;
+    flex-direction: row;
+    background-color: white;
+    justify-content: center;
+    margin-left: 10px;
+    margin-right: 10px;
+    margin-bottom: 10px;
+}
+
+.wksp-mobile-button-group button {
+    background-color: #888888;
+    color: black;
+    border: 1px solid black;
+}
+
 @media (min-width: 576px) {
     #wkspMenuToggle {
+        display: none;
+    }
+
+    .wksp-button-group {
         display: none;
     }
 }
@@ -265,6 +285,13 @@ body {
 
     #workspacePage #wkspContent {
         height: 90%;
+        flex-direction: column;
+        align-content: stretch;
+        border-bottom: 0;
+    }
+
+    #workspacePage #wkspContent .wksp-blank-page {
+        margin-bottom: 0;
     }
 }
 
