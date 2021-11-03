@@ -13,12 +13,12 @@
 // Set the configuration for your app
 // TODO: Replace with your app's config object
 var firebaseConfig = {
-    apiKey: '<your-api-key>',
-    authDomain: '<your-auth-domain>',
+    apiKey: 'AIzaSyCV2-UBsLgkCvlDLFqY-3OsSnZF_a5rfGo',
+    authDomain: 'pickens-thorp-squadm8-csse280.firebaseapp.com',
     databaseURL: 'gs://pickens-thorp-squadm8-csse280.appspot.com',
-    storageBucket: 'gs://pickens-thorp-squadm8-csse280.appspot.com'
+    storageBucket: 'pickens-thorp-squadm8-csse280.appspot.com'
   };
-  firebase.initializeApp(firebaseConfig);
-  
+firebase.initializeApp(firebaseConfig);
+
   // Get a reference to the storage service, which is used to create references in your storage bucket
-  var storage = firebase.storage();
+var storage = firebase.storage();
