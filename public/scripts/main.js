@@ -1,18 +1,11 @@
-const { PDFDocument } = require("pdf-lib");
+
 
 /** namespace. */
 var rhit = rhit || {};
 
-rhit.fbAuthManager = null;
-
-/** globals */
-rhit.variableName = "";
-
-/** function and class syntax examples */
-rhit.functionName = function () {
-	/** function body */
-};
-
+/**
+ * Constants used for the Workspace Page
+ */
 rhit.wkspConstants = {
 
 	PDF_HTML_START: `<embed type="application/pdf" src="`,
@@ -25,6 +18,12 @@ rhit.wkspConstants = {
 
 }
 
+/**
+ * Declaring it for typing purposes
+ * @type {rhit.FbAuthManager}
+ */
+rhit.fbAuthManager;
+
 // From stackoverflow
 function htmlToElement(html) {
 	var template = document.createElement('template');
@@ -33,31 +32,105 @@ function htmlToElement(html) {
 	return template.content.firstChild;
 }
 
+
+
 /**
+ * ###################################################################################################################
  * 
- * @returns {rhit.PDFDocHandler}
+ * Landing Page Code
+ * 
+ * ###################################################################################################################
  */
-rhit.PDFHandlerHelper = async function(url) {
-	let pdfDoc = await PDFDocument.load(url);
-
-	
-
-}
-
-rhit.PDFDocHandler = class {
-	/**
-	 *
-	 * @param {PDFDocHandlerOptions} options 
-	 */
-	constructor(pdfDoc) {
-
-		this.pdfDoc = pdfDoc;
-		
+ rhit.LoginPageController = class {
+	constructor() {
+		document.querySelector("#rosefireButton").onclick = (event) => {
+			rhit.fbAuthManager.signIn();
+		}
 	}
 }
 
-rhit.HomePageController = class {
+rhit.FbAuthManager = class {
 	constructor() {
+		this._user = null;
+	}
+
+	async beginListening(changeListener) {
+		firebase.auth().onAuthStateChanged((user) => {
+			this._user = user;
+			changeListener();
+		})
+	}
+
+	signIn() {
+		Rosefire.signIn("2b6351f3-9842-4276-83f2-e65d1e2fb7cc", (err, rfUser) => {
+			if (err) {
+			  console.log("Rosefire error!", err);
+			  return;
+			}
+			console.log("Rosefire success!", rfUser);
+		  
+			// Next use the Rosefire token with Firebase auth.
+			firebase.auth().signInWithCustomToken(rfUser.token).catch((error) => {
+			  if (error.code === 'auth/invalid-custom-token') {
+				console.log("The token you provided is not valid.");
+			  } else {
+				console.log("signInWithCustomToken error", error.message);
+			  }
+			}); // Note: Success should be handled by an onAuthStateChanged listener.
+		  });
+	}
+
+	signOut() {
+		firebase.auth().signOut().catch((error) => {
+			console.log("Sign out error");
+		})
+	}
+
+	get isSignedIn() {
+		return !!this._user;
+	}
+
+	get uid() {
+		return this._user.uid;
+	}
+}
+
+rhit.checkForRedirects = function() {
+	if (document.querySelector("#landingPage") && rhit.fbAuthManager.isSignedIn) {
+		window.location.href = "/home.html";
+	}
+	if (!document.querySelector("#landingPage") && !rhit.fbAuthManager.isSignedIn) {
+		console.log("ope");
+		window.location.href = "/";
+	}
+}
+
+rhit.initializePage = async function(uid) {
+	if (document.querySelector("#homePage")) {
+		console.log("You are on the home page");
+		await rhit.buildHomePage(uid)
+		new rhit.HomePageController();
+	}
+
+	if (document.querySelector("#workspacePage")) {
+		console.log("You are on the workspace page");
+		new rhit.WorkspacePageController();
+	}
+
+	if (document.querySelector("#landingPage")) {
+		console.log("You are on the landing page");
+		new rhit.LoginPageController();
+	}
+}
+/**
+ * ###################################################################################################################
+ * 
+ * Home Page Code
+ * 
+ * ###################################################################################################################
+ */
+rhit.HomePageController = class {
+	constructor(uid) {
 		document.querySelector("#navMessage").innerHTML = `Hey, ${rhit.fbAuthManager.uid}`;
 		document.querySelector("#navLogOutButton").onclick = (event) => {
 			rhit.fbAuthManager.signOut();
@@ -68,11 +141,42 @@ rhit.HomePageController = class {
 	}
 }
 
+rhit.HomePageManager = class {
+
+}
+
+/**
+ * @param {string} uid
+ */
+rhit.buildHomePage = async function() {
+
+	
+
+}
+/**
+ * ###################################################################################################################
+ * 
+ * Workspace Page Code
+ * 
+ * ###################################################################################################################
+ */
 rhit.WorkspacePageController = class {
-	constructor() {
+	
+	/**
+	 * @param {boolean} newSpace
+	 * @param {string} uid
+	 * @param {string} wksp
+	 */
+	constructor(newSpace, uid, wksp) {
 		/*
 		  Adding listeners to Workspace Page Buttons
 		*/
+		this.createListeners();
+		this.manager = new rhit.WorkspaceManager(newSpace, uid, wksp);
+
+	}
+
+	createListeners() {
 		document.querySelector("#wkspDrawerHomeButton").onclick = (event) => {
 			window.location.href = "/home.html";
 		}
@@ -97,9 +201,6 @@ rhit.WorkspacePageController = class {
 																	${rhit.wkspConstants.PDF_URL}
 																	${rhit.wkspConstants.PDF_HTML_END}`;
 		});
-
-		
-
 	}
 
 	draw() {
@@ -157,99 +258,76 @@ rhit.WorkspacePageController = class {
 		console.log('Finished Drawing');
 
 	}
+
+	updateView() {
+
+	}
 }
 
-rhit.LoginPageController = class {
-	constructor() {
-		document.querySelector("#rosefireButton").onclick = (event) => {
-			rhit.fbAuthManager.signIn();
+rhit.WorkspaceManager = class {
+
+	/**
+	 * FUNCTIONS:
+	 * 
+	 * 1. IF new -> create storage & firestore directory
+	 * 
+	 * 2. Store uid/wksp for references
+	 * 
+	 * 3. Create storage ref @ wksp folder
+	 *  
+	 */
+
+	/**
+	 * 
+	 * @param {boolean} newSpace 
+	 * @param {string} uid
+	 */
+	constructor(newSpace, uid) {
+
+		this.uid = uid;
+		this._ref = firebase.firestore().collection('collection-name');
+		this._documentSnapshots;
+
+		if (newSpace) {
+			this.createNewWorkspace(this.uid);
 		}
-	}
-}
 
-rhit.FbAuthManager = class {
-	constructor() {
-		this._user = null;
+		/**
+		 * 
+		 */
 	}
 
-	beginListening(changeListener) {
-		firebase.auth().onAuthStateChanged((user) => {
-			this._user = user;
-			changeListener();
-		})
-	}
+	/**
+	 * Creates new storage directory and firebase directory
+	 * for a workspace by the given user
+	 * 
+	 * @param {string} uid 
+	 */
+	createNewWorkspace(uid)
 
-	signIn() {
-		Rosefire.signIn("2b6351f3-9842-4276-83f2-e65d1e2fb7cc", (err, rfUser) => {
-			if (err) {
-			  console.log("Rosefire error!", err);
-			  return;
-			}
-			console.log("Rosefire success!", rfUser);
-		  
-			// Next use the Rosefire token with Firebase auth.
-			firebase.auth().signInWithCustomToken(rfUser.token).catch((error) => {
-			  if (error.code === 'auth/invalid-custom-token') {
-				console.log("The token you provided is not valid.");
-			  } else {
-				console.log("signInWithCustomToken error", error.message);
-			  }
-			}); // Note: Success should be handled by an onAuthStateChanged listener.
-		  });
-	}
-
-	signOut() {
-		firebase.auth().signOut().catch((error) => {
-			console.log("Sign out error");
-		})
-	}
-
-	get isSignedIn() {
-		return !!this._user;
-	}
-
-	get uid() {
-		return this._user.uid;
-	}
-}
-
-rhit.checkForRedirects = function() {
-	if (document.querySelector("#landingPage") && rhit.fbAuthManager.isSignedIn) {
-		window.location.href = "/home.html";
-	}
-	if (!document.querySelector("#landingPage") && !rhit.fbAuthManager.isSignedIn) {
-		console.log("ope");
-		window.location.href = "/";
-	}
-}
-
-rhit.initializePage = function() {
-	if (document.querySelector("#homePage")) {
-		console.log("You are on the home page");
-		new rhit.HomePageController();
-	}
-
-	if (document.querySelector("#workspacePage")) {
-		console.log("You are on the workspace page");
-		new rhit.WorkspacePageController();
-	}
-
-	if (document.querySelector("#landingPage")) {
-		console.log("You are on the landing page");
-		new rhit.LoginPageController();
-	}
 }
 
 /* Main */
 /** function and class syntax examples */
 rhit.main = function () {
 	console.log("Ready");
+
+	/**
+	 * Initialize firebase
+	 */
+	var firebaseConfig = {
+		apiKey: 'AIzaSyCV2-UBsLgkCvlDLFqY-3OsSnZF_a5rfGo',
+		authDomain: 'pickens-thorp-squadm8-csse280.firebaseapp.com',
+		storageBucket: 'pickens-thorp-squadm8-csse280.appspot.com'
+	};
+	firebase.initializeApp(firebaseConfig);
+
 	rhit.fbAuthManager = new rhit.FbAuthManager();
-	rhit.fbAuthManager.beginListening(() => {
+	rhit.fbAuthManager.beginListening(async function() {
 		console.log("isSignedIn = ", rhit.fbAuthManager.isSignedIn);
 		rhit.checkForRedirects();
-		rhit.initializePage();
-	})
+		await rhit.initializePage(rhit.fbAuthManager.uid);
+	});
 };
 
 rhit.main();

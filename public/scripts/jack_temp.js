@@ -15,9 +15,8 @@
 var firebaseConfig = {
     apiKey: 'AIzaSyCV2-UBsLgkCvlDLFqY-3OsSnZF_a5rfGo',
     authDomain: 'pickens-thorp-squadm8-csse280.firebaseapp.com',
-    databaseURL: 'gs://pickens-thorp-squadm8-csse280.appspot.com',
     storageBucket: 'pickens-thorp-squadm8-csse280.appspot.com'
-  };
+};
 firebase.initializeApp(firebaseConfig);
 
   // Get a reference to the storage service, which is used to create references in your storage bucket
