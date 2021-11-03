@@ -91,6 +91,7 @@ rhit.FbAuthManager = class {
 	}
 
 	get uid() {
+		if (!this._user) return false;
 		return this._user.uid;
 	}
 }
@@ -104,16 +105,27 @@ rhit.checkForRedirects = function() {
 		window.location.href = "/";
 	}
 }
-
-rhit.initializePage = async function(uid) {
+/**
+ * @typedef {Object} InitOptions
+ * @property {string|undefined} uid
+ * 
+ * @param {InitOptions} options 
+ * @returns 
+ */
+rhit.initializePage = async function(options) {
 	if (document.querySelector("#homePage")) {
 		console.log("You are on the home page");
-		await rhit.buildHomePage(uid)
+		if (!options.uid) return;
+		// This is bad, find a way to handle it
+		await rhit.buildHomePage(options.uid)
 		new rhit.HomePageController();
 	}
 
 	if (document.querySelector("#workspacePage")) {
+		if (!options.uid) return;
+		// This is bad, find a way to handle it
 		console.log("You are on the workspace page");
+		await rhit.buildWorkspacePage(options.uid);
 		new rhit.WorkspacePageController();
 	}
 
@@ -289,7 +301,7 @@ rhit.WorkspaceManager = class {
 		this._documentSnapshots;
 
 		if (newSpace) {
-			this.createNewWorkspace(this.uid);
+			this.createNewWorkspace(this.uid).then();
 		}
 
 		/**
@@ -303,9 +315,18 @@ rhit.WorkspaceManager = class {
 	 * 
 	 * @param {string} uid 
 	 */
-	createNewWorkspace(uid) {
-		
+	async createNewWorkspace(uid) {
+
 	}
+
+}
+
+/**
+ * @param {string} uid
+ */
+ rhit.buildWorkspacePage = async function() {
+
+	
 
 }
 
@@ -317,18 +338,22 @@ rhit.main = function () {
 	/**
 	 * Initialize firebase
 	 */
-	var firebaseConfig = {
-		apiKey: 'AIzaSyCV2-UBsLgkCvlDLFqY-3OsSnZF_a5rfGo',
-		authDomain: 'pickens-thorp-squadm8-csse280.firebaseapp.com',
-		storageBucket: 'pickens-thorp-squadm8-csse280.appspot.com'
-	};
-	firebase.initializeApp(firebaseConfig);
+	// var firebaseConfig = {
+	// 	apiKey: 'AIzaSyCV2-UBsLgkCvlDLFqY-3OsSnZF_a5rfGo',
+	// 	authDomain: 'pickens-thorp-squadm8-csse280.firebaseapp.com',
+	// 	storageBucket: 'pickens-thorp-squadm8-csse280.appspot.com'
+	// };
+	// firebase.initializeApp(firebaseConfig);
 
 	rhit.fbAuthManager = new rhit.FbAuthManager();
 	rhit.fbAuthManager.beginListening(async function() {
 		console.log("isSignedIn = ", rhit.fbAuthManager.isSignedIn);
 		rhit.checkForRedirects();
-		await rhit.initializePage(rhit.fbAuthManager.uid);
+		let options = {};
+		if (rhit.fbAuthManager.uid) {
+			options.uid = rhit.fbAuthManager.uid;
+		}		
+		await rhit.initializePage(options);	
 	});
 };
 
