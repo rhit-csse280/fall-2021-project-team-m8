@@ -303,7 +303,9 @@ rhit.WorkspaceManager = class {
 	 * 
 	 * @param {string} uid 
 	 */
-	createNewWorkspace(uid)
+	createNewWorkspace(uid) {
+		
+	}
 
 }
 
