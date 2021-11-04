@@ -141,6 +141,19 @@ rhit.initializePage = async function(options) {
  * 
  * ###################################################################################################################
  */
+
+/**
+ * Process for loading Home:
+ * 
+ * 1. Fetch User info from firebase
+ * 
+ * 2. Build HTML list items for user's workspaces
+ *    (MAKE SURE TO INCLUDE IDENTIFIER & LISTENER)
+ *    (This will be done in buildHomePage)
+ * 
+ * 3. Add listeners to create/join/menu buttons
+ *    (This can be done in page controller)
+ */
 rhit.HomePageController = class {
 	constructor(uid) {
 		document.querySelector("#navMessage").innerHTML = `Hey, ${rhit.fbAuthManager.uid}`;
@@ -171,6 +184,24 @@ rhit.buildHomePage = async function() {
  * Workspace Page Code
  * 
  * ###################################################################################################################
+ */
+
+/**
+ * Process for loading workspace:
+ * 
+ * ASYNC STUFF:
+ * 1. Fetch workspace files/members
+ * 
+ * 2. Build lists for files/members
+ * 
+ * 3. Fetch and load top file
+ * 
+ * NON ASYNC:
+ * 1. Add menu/new file listeners
+ * 
+ * 2. Store firebase & storage root refs
+ * 
+ * 3.
  */
 rhit.WorkspacePageController = class {
 	
@@ -296,27 +327,55 @@ rhit.WorkspaceManager = class {
 	 */
 	constructor(newSpace, uid) {
 
-		this.uid = uid;
-		this._ref = firebase.firestore().collection('collection-name');
+		this._uid = uid;
+		this._unsubscribe;
 		this._documentSnapshots;
-
 		if (newSpace) {
 			this.createNewWorkspace(this.uid).then();
+			// Still need to assign stuff
+		} else {
+			
+			this._ref = firebase.firestore().collection('collection-name');
+			
 		}
-
-		/**
-		 * 
-		 */
 	}
 
 	/**
 	 * Creates new storage directory and firebase directory
 	 * for a workspace by the given user
 	 * 
+	 * @typedef {Object} NewWksp
+	 * @property {string} firestoreRoot
+	 * @property {string} storageRoot
+	 * 
 	 * @param {string} uid 
+	 * 
+	 * @returns {Promise<NewWksp>}
 	 */
 	async createNewWorkspace(uid) {
+		return new Promise((resolve, reject) => {
 
+			/**
+			 * This method should send a request to
+			 * the server to create directories.
+			 * 
+			 * The server should respond with the roots to
+			 * the newly created directories.
+			 */
+
+		});
+	}
+
+	beginListening(changeListener) {
+
+		this._unsubscribe = this._ref.
+			orderBy(''/**Order key */, 'desc')
+			.onSnapshot((querySnapshot) => {
+			this._documentSnapshots = querySnapshot.docs;
+			console.log('database update');
+			changeListener();
+		});
+		
 	}
 
 }
