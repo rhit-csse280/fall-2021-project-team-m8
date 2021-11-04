@@ -12,19 +12,6 @@
 
 <body id="wksp">
   <div class="bmd-layout-container bmd-drawer-f-l bmd-drawer-overlay">
-    <header class="bmd-layout-header">
-      <div class="navbar navbar-dark bg-faded fixed-top justify-content-start">
-        <button class="navbar-toggler" type="button" data-toggle="drawer" data-target="#dw-s2">
-          <span class="sr-only">Toggle drawer</span>
-          <i class="material-icons">menu</i>
-        </button>
-        <button id="navHomeButton" class="btn text-light">Home</button>
-        <button id="navCreateButton" type="button" class="btn text-light">Create</button>
-        <button id="navJoinButton" type="button" class="btn text-light">Join</button>
-        <button id="navMessage" class="btn text-light">Hey, John S.</button>
-        <button id="navLogOutButton" type="button" class="btn text-light">Log Out</button>
-      </div>
-    </header>
     <div id="dw-s2" class="bmd-layout-drawer bg-faded">
       <div class="button-group">
         <button id="wkspDrawerHomeButton">Home</button>
@@ -34,10 +21,19 @@
       </div>
     </div>
     <main class="bmd-layout-content">
+      <div class="navbar navbar-dark bg-faded fixed-top">
+        <button id="wkspMenuToggle" class="navbar-toggler" type="button" data-toggle="drawer" data-target="#dw-s2">
+          <span class="sr-only">Toggle drawer</span>
+          <i class="material-icons">menu</i>
+        </button>
+        <button id="navHomeButton" class="btn text-light nav-menu-btn">Home</button>
+        <button id="navCreateButton" type="button" class="btn text-light nav-menu-btn">Create</button>
+        <button id="navJoinButton" type="button" class="btn text-light nav-menu-btn">Join</button>
+        <button id="navMessage" class="btn text-light">Hey, John S.</button>
+        <button id="navLogOutButton" type="button" class="btn text-light">Log Out</button>
+      </div>
       <div id="workspacePage" class="container page-container">
-
         <div id="wkspContent">
-    
           <nav id="sideBar" class="nav flex-column">
             <button id="wkspInvite" type="button" class="btn btn-primary btn-outline-primary wksp-button">
               Invite
@@ -93,7 +89,12 @@
     
             </div>
           </div>
-    
+          
+          <div class="wksp-mobile-button-group">
+            <button id="wkspTextMobile" class="btn">Text</button>
+            <button id="wkspPDFMobile" class="btn">Pdf</button>
+            <button id="wkspCanvasMobile" class="btn">Draw</button>
+          </div>
         </div>
     
       </div>
