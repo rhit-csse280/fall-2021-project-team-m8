@@ -24,7 +24,11 @@ app.get('/wkspcreate', async function(req, res) {
 
 });
 
+// Fetches and returns the contents of a file
 app.get('/fetchfile', async function(req, res) {
+  let ref = req.ref;
+
+  
 
 });
 
