@@ -22,7 +22,7 @@ body {
 
 
 .navbar button, .navbar a {
-    font-size: 2em;
+    font-size: 1.5em;
     text-transform: none;
     text-decoration: bold;
 }
@@ -91,11 +91,11 @@ body {
     display: none;
 }
 
-@media (max-width: 723px) {
-    .navbar button {
-        font-size: 1.25em;
-    }
+.navbar {
+    height: 85px;
 }
+
+
 
 @media (max-width: 576px) {
 
@@ -215,7 +215,6 @@ body {
 #workspacePage .wksp-settings {
     background-color: lightgray;
     flex: 1 0 40%;
-    margin: 10px;
 
 }
 
@@ -269,10 +268,6 @@ body {
     }
     .nav-menu-btn {
         display: none;
-    }
-
-    .navbar button {
-        font-size: 4vw;
     }
 
     #sideBar {
