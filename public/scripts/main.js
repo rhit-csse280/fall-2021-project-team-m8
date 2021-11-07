@@ -120,8 +120,8 @@ rhit.initializePage = async function(options) {
 		console.log("You are on the home page");
 		if (!options.uid) return;
 		// This is bad, find a way to handle it
-		await rhit.buildHomePage(options.uid)
-		new rhit.HomePageController();
+		let wkspNames = await rhit.buildHomePage(options.uid)
+		new rhit.HomePageController(wkspNames, options.uid);
 	}
 
 	if (document.querySelector("#workspacePage")) {
@@ -158,13 +158,16 @@ rhit.initializePage = async function(options) {
  *    (This can be done in page controller)
  */
 rhit.HomePageController = class {
-	constructor(uid) {
+	constructor(workspaceNames, uid) {
+		console.log(workspaceNames);
+		let workspaces = "";
+		for (let workspace of workspaceNames) {
+			workspaces += `<a>${workspace}</a><hr>`
+		}
+		document.querySelector("#workspacesBox").innerHTML = workspaces;
 		document.querySelector("#navMessage").innerHTML = `Hey, ${rhit.fbAuthManager.uid}`;
 		document.querySelector("#navLogOutButton").onclick = (event) => {
 			rhit.fbAuthManager.signOut();
-		}
-		document.querySelector("#workspaceName").onclick = (event) => {
-			window.location.href = "/workspace.html";
 		}
 	}
 }
@@ -181,22 +184,26 @@ rhit.HomePageManager = class {
  * @param {string} uid
  */
 rhit.buildHomePage = async function(uid) {
-
 	// Get a user reference to loop through for workspaces
-	let userRef = await firebase.firestore().collection(this.wkspConstants.USERS_REF_KEY).where(`uid`, `==`, `${uid}`);
-	if (userRef.empty) {
-		console.log(`  BuildHomePage: No user found. Creating user`)
-		await rhit.newUser(user);
-		userRef = await firebase.firestore().collection(this.wkspConstants.USERS_REF_KEY).where(`uid`, `==`, `${uid}`);
-	}
+	let userData = [];
+	await firebase.firestore().collection(this.wkspConstants.USERS_REF_KEY).where(`uid`, `==`, `${uid}`).get()
+	.then((querySnapshot) => {
+		querySnapshot.forEach((doc) => {
+			userData = Object.keys(doc.data())
+		})
+	});
+	userData.splice(userData.indexOf("uid"), 1)
+	// if (userRef.empty) {
+	// 	console.log(`  BuildHomePage: No user found. Creating user`)
+	// 	await rhit.newUser(user);
+	// 	userRef = await firebase.firestore().collection(this.wkspConstants.USERS_REF_KEY).where(`uid`, `==`, `${uid}`);
+	// }
 
 	// Get list of workspaces & convert to display names
-	let userEntries = userRef.docs;
-	let userData;
-
-	userEntries.forEach(entry => {
-		userData.push(Object.keys())
+	userData.forEach((element, index) => {
+		userData[index] = element.split('-')[1]
 	})
+	return userData;
 
 }
 
@@ -512,7 +519,7 @@ rhit.WorkspaceManager = class {
  rhit.buildWorkspacePage = async function(uid, wkspName) {
 
 	
-	let userDocSnapshot = await firebase.firestore().collection(rhit.wkspConstants.USERS_REF_KEY).where("uid", "==", `${uid}`)
+	let userDocSnapshot = await firebase.firestore().collection(rhit.wkspConstants.USERS_REF_KEY).where("uid", "==", `${uid}`).get()
 	if (userDocSnapshot.empty) {
 		console.log(`  BuildWorkspacePage: User query returned empty -> Make document for user ${uid}`);
 		return;
