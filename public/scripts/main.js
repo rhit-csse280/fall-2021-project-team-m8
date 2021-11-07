@@ -120,8 +120,8 @@ rhit.initializePage = async function(options) {
 		console.log("You are on the home page");
 		if (!options.uid) return;
 		// This is bad, find a way to handle it
-		let wkspNames = await rhit.buildHomePage(options.uid)
-		new rhit.HomePageController(wkspNames, options.uid);
+		await rhit.buildHomePage(options.uid)
+		new rhit.HomePageController();
 	}
 
 	if (document.querySelector("#workspacePage")) {
@@ -158,16 +158,13 @@ rhit.initializePage = async function(options) {
  *    (This can be done in page controller)
  */
 rhit.HomePageController = class {
-	constructor(workspaceNames, uid) {
-		console.log(workspaceNames);
-		let workspaces = "";
-		for (let workspace of workspaceNames) {
-			workspaces += `<a>${workspace}</a><hr>`
-		}
-		document.querySelector("#workspacesBox").innerHTML = workspaces;
+	constructor(uid) {
 		document.querySelector("#navMessage").innerHTML = `Hey, ${rhit.fbAuthManager.uid}`;
 		document.querySelector("#navLogOutButton").onclick = (event) => {
 			rhit.fbAuthManager.signOut();
+		}
+		document.querySelector("#workspaceName").onclick = (event) => {
+			window.location.href = "/workspace.html";
 		}
 	}
 }
@@ -184,26 +181,18 @@ rhit.HomePageManager = class {
  * @param {string} uid
  */
 rhit.buildHomePage = async function(uid) {
+
 	// Get a user reference to loop through for workspaces
-	let userData = [];
-	await firebase.firestore().collection(this.wkspConstants.USERS_REF_KEY).where(`uid`, `==`, `${uid}`).get()
-	.then((querySnapshot) => {
-		querySnapshot.forEach((doc) => {
-			userData = Object.keys(doc.data())
-		})
-	});
-	userData.splice(userData.indexOf("uid"), 1)
-	// if (userRef.empty) {
-	// 	console.log(`  BuildHomePage: No user found. Creating user`)
-	// 	await rhit.newUser(user);
-	// 	userRef = await firebase.firestore().collection(this.wkspConstants.USERS_REF_KEY).where(`uid`, `==`, `${uid}`);
-	// }
+	let userRef = await firebase.firestore().collection(this.wkspConstants.USERS_REF_KEY).where(`uid`, `==`, `${uid}`);
+	if (userRef.empty) {
+		console.log(`  BuildHomePage: No user found. Creating user`)
+		await rhit.newUser(user);
+		userRef = await firebase.firestore().collection(this.wkspConstants.USERS_REF_KEY).where(`uid`, `==`, `${uid}`);
+	}
 
 	// Get list of workspaces & convert to display names
-	userData.forEach((element, index) => {
-		userData[index] = element.split('-')[1]
-	})
-	return userData;
+	let userEntries = userRef.docs;
+	let userData;
 
 }
 
@@ -298,8 +287,17 @@ rhit.WorkspacePageController = class {
 		});
 		document.querySelector("#wkspCanvas").addEventListener('click', ()=> {
 			document.querySelector(".wksp-blank-page").innerHTML = `${rhit.wkspConstants.CANVAS_HTML}`;
-			this.draw();
-			this.drawTwo(); // To test layering draws for canvas -> If this works canvas should be pretty easy to implement
+			/**@type {HTMLCanvasElement} */
+			let canvas = document.querySelector('#testCanvas');
+			// Resize canvas to fit
+			fitToContainer(canvas);
+			canvas.addEventListener('mousedown', (event) => {
+				const rect = event.target.getBoundingClientRect();
+				const x = event.clientX - rect.left;
+				const y = event.clientY - rect.top;
+
+				this.drawCircle(x, y);
+			});
 		});
 		document.querySelector("#wkspPDF").addEventListener('click', ()=> {
 			document.querySelector(".wksp-blank-page").innerHTML = `${rhit.wkspConstants.PDF_HTML_START}
@@ -308,86 +306,14 @@ rhit.WorkspacePageController = class {
 		});
 	}
 
-	draw() {
-
-		/**
-		 * This method will update the canvas if one exists.
-		 * 
-		 * Not all steps will necessarily occur in this method, but this
-		 * is what must happen to let th euser draw:
-		 * 
-		 *  1. Make a canvas context object and set its color for drawing
-		 * 
-		 * 	2. Get cursor location (either directly from canvas or by
-		 *     getting absolute position and calculating where that would
-		 *     be on the canvas)
-		 * 
-		 *  3. Use context.arc(x, y, radius, startAngle, endAngle, counterclockwise (boolean))
-		 *     to draw circle at cursor location
-		 *     ex: context.arc(5, 5, 2, 0, Math.PI * 2, true);
-		 * 
-		 *  NOTE: This is just a very basic drawing function. Later versions will implement
-		 *  options such as pen size, erasing (probably a context.clearRect()), and other color
-		 *  options
-		 * 
-		 */
-
-		/**
-		 * Fetching Canvas element and making
-		 * context
-		 * @type {HTMLCanvasElement} 
-		*/
-		let canvas = document.querySelector('#testCanvas');
-		if (!canvas.getContext) {
-			console.log('Canvas not supported');
-			return;
-		}
-		let context = canvas.getContext('2d');
-		context.fillStyle = 'rgb(128, 0, 0)';
-
-		console.log('Canvas and context made');
-
-
-		// Draw a ">" shape to demonstrate canvas
-		// This will be removed once free drawing is implemented
-		context.beginPath();
-		for (let i = 0; i <= 30; i++) {			
-				context.arc(i + 20, i + 20, 6, 0, Math.PI * 2, true);
-		}
-		console.log('First line finished');
-		for (let i = 0; i < 30; i++) {			
-			context.arc(50 - i, 50 + i, 6, 0, Math.PI * 2, true);
-		}
-		context.fill();
-
-		console.log('Finished Drawing');
-
-	}
-
-	drawTwo() {
-
-		/**
-		 * This method will update the canvas if one exists.
-		 * 
-		 * Not all steps will necessarily occur in this method, but this
-		 * is what must happen to let th euser draw:
-		 * 
-		 *  1. Make a canvas context object and set its color for drawing
-		 * 
-		 * 	2. Get cursor location (either directly from canvas or by
-		 *     getting absolute position and calculating where that would
-		 *     be on the canvas)
-		 * 
-		 *  3. Use context.arc(x, y, radius, startAngle, endAngle, counterclockwise (boolean))
-		 *     to draw circle at cursor location
-		 *     ex: context.arc(5, 5, 2, 0, Math.PI * 2, true);
-		 * 
-		 *  NOTE: This is just a very basic drawing function. Later versions will implement
-		 *  options such as pen size, erasing (probably a context.clearRect()), and other color
-		 *  options
-		 * 
-		 */
-
+	/**
+	 * Draws where the mouse is on the canvas
+	 * 
+	 * @param {number} x 
+	 * @param {number} y 
+	 * @returns 
+	 */
+	drawCircle(x, y) {
 		/**
 		 * Fetching Canvas element and making
 		 * context
@@ -403,97 +329,37 @@ rhit.WorkspacePageController = class {
 
 		console.log('Canvas and context made');
 
-
-		// Draw a ">" shape to demonstrate canvas
-		// This will be removed once free drawing is implemented
 		context.beginPath();
-		for (let i = 0; i <= 30; i++) {			
-				context.arc(i + 30, i + 30, 4, 0, Math.PI * 2, true);
-		}
-		console.log('First line finished');
-		for (let i = 0; i < 30; i++) {			
-			context.arc(60 - i, 60 + i, 8, 0, Math.PI * 2, true);
-		}
+		context.arc(x, y, 5, 0, Math.PI * 2, true);
 		context.fill();
-
-		console.log('Finished Drawing');
-
 	}
-
+	
 	updateView() {
 
 	}
 }
 
+// From stackoverflow ->
+function fitToContainer(canvas){
+	// Make it visually fill the positioned parent
+	canvas.style.width ='100%';
+	canvas.style.height='100%';
+	// ...then set the internal size to match
+	canvas.width  = canvas.offsetWidth;
+	canvas.height = canvas.offsetHeight;
+}
+
 rhit.WorkspaceManager = class {
 
-	/**
-	 * FUNCTIONS:
-	 * 
-	 * 1. IF new -> create storage & firestore directory
-	 * 
-	 * 2. Store uid/wksp for references
-	 * 
-	 * 3. Create storage ref @ wksp folder
-	 *  
-	 */
 
 	/**
-	 * 
-	 * @param {boolean} newSpace 
+	 *  
 	 * @param {string} uid
 	 */
-	constructor(newSpace, uid) {
+	constructor(uid) {
 
 		this._uid = uid;
-		this._unsubscribe;
-		this._fileDocumentSnapshots;
-		this._memberList;
-		this._filesRef = firebase.firestore().collection('Files');
-		this._wksp = firebase.firestore().collection('Workspaces').doc()
-		if (newSpace) {
-			this._createNewWorkspace(this._ref, this.uid).then(refs => {
-
-				let files = [];
-				let members = [this.uid];
-
-
-			});
-			// Still need to assign stuff
-		} else {
-			
-			
-			
-		}
-	}
-
-	/**
-	 * Creates new storage directory and firebase directory
-	 * for a workspace by the given user
-	 * 
-	 * @typedef {Object} NewWksp
-	 * @property {Object[]} files
-	 * @property {string} wkspId
-	 * 
-	 * @param {string} uid
-	 * @param ref 
-	 * 
-	 * @returns {Promise<NewWksp>}
-	 */
-	async _createNewWorkspace(uid, ref) {
-		return new Promise((resolve, reject) => {
-
-			/**
-			 * This method needs to:
-			 * 
-			 * 1. Create a text and workspace document and return their references
-			 * 
-			 * 2. Then, edit each document to add ID references to each other
-			 * 
-			 * 3. Then, resolve with text file ID & workspace ID)
-			 */
-
-		});
+		
 	}
 
 	beginListening(changeListener) {
@@ -519,13 +385,13 @@ rhit.WorkspaceManager = class {
  rhit.buildWorkspacePage = async function(uid, wkspName) {
 
 	
-	let userDocSnapshot = await firebase.firestore().collection(rhit.wkspConstants.USERS_REF_KEY).where("uid", "==", `${uid}`).get()
+	let userDocSnapshot = await firebase.firestore().collection(rhit.wkspConstants.USERS_REF_KEY).where("uid", "==", `${uid}`).get();
 	if (userDocSnapshot.empty) {
 		console.log(`  BuildWorkspacePage: User query returned empty -> Make document for user ${uid}`);
 		return;
 	}
 
-	if (!userDocSnapshot.get(`wksp-${wkspName}`)) {
+	if (!userDocSnapshot.data().get(`wksp-${wkspName}`)) {
 		console.log(`  BuildWorkspacePage: Workspace 'wksp-${wkspName}' does not exist`);
 		return;
 	}
