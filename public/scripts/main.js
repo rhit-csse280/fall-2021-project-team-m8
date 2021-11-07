@@ -190,7 +190,13 @@ rhit.buildHomePage = async function(uid) {
 		userRef = await firebase.firestore().collection(this.wkspConstants.USERS_REF_KEY).where(`uid`, `==`, `${uid}`);
 	}
 
-	
+	// Get list of workspaces & convert to display names
+	let userEntries = userRef.docs;
+	let userData;
+
+	userEntries.forEach(entry => {
+		userData.push(Object.keys())
+	})
 
 }
 
