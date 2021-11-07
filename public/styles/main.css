@@ -128,13 +128,13 @@ body {
     height: 100vh;
 }
 
-.workspaces-box {
+#workspacesBox {
     border: 1px black solid;
     width: 75%;
     height: 80%;
 }
 
-.workspaces-box p {
+#workspacesBox p {
     border-bottom: 1px gray solid;
     font-weight: normal;
 }
