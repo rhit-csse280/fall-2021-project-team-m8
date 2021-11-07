@@ -5,19 +5,75 @@
 
 
 /**
- * Firebase Storage template methods
+ * ######################################################################################################################################
+ * 
+ * Divider
+ * 
+ * ######################################################################################################################################
  */
 
 
+/**
+ * ######################################################################################################################################
+ * 
+ * CANVAS STUFF
+ * 
+ * ######################################################################################################################################
+ */
 
-// Set the configuration for your app
-// TODO: Replace with your app's config object
-var firebaseConfig = {
-    apiKey: 'AIzaSyCV2-UBsLgkCvlDLFqY-3OsSnZF_a5rfGo',
-    authDomain: 'pickens-thorp-squadm8-csse280.firebaseapp.com',
-    storageBucket: 'pickens-thorp-squadm8-csse280.appspot.com'
-};
-firebase.initializeApp(firebaseConfig);
+/**
+ * When creating canvas element
+ */
+ document.querySelector("#wkspCanvas").addEventListener('click', ()=> {
+  document.querySelector(".wksp-blank-page").innerHTML = `${rhit.wkspConstants.CANVAS_HTML}`;
+  /**@type {HTMLCanvasElement} */
+  let canvas = document.querySelector('#testCanvas');
+  // Resize canvas to fit
+  fitToContainer(canvas);
+  canvas.addEventListener('mousedown', (event) => {
+    const rect = event.target.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
 
-  // Get a reference to the storage service, which is used to create references in your storage bucket
-var storage = firebase.storage();
+    this.drawCircle(x, y);
+  });
+});
+
+/**
+ * Plan for RE fetching canvas: 
+ * 
+ * Make invisible image element -> download old canvas image
+ * 
+ */
+
+
+/**
+ * Add this as a method to WorkspacePageController (called in canvas click listener)
+ */
+/**
+	 * Draws where the mouse is on the canvas
+	 * 
+	 * @param {number} x 
+	 * @param {number} y 
+	 * @returns 
+	 */
+function drawCircle(x, y) {
+  /**
+   * Fetching Canvas element and making
+   * context
+   * @type {HTMLCanvasElement} 
+  */
+  let canvas = document.querySelector('#testCanvas');
+  if (!canvas.getContext) {
+    console.log('Canvas not supported');
+    return;
+  }
+  let context = canvas.getContext('2d');
+  context.fillStyle = 'rgb(0, 0, 0)';
+
+  console.log('Canvas and context made');
+
+  context.beginPath();
+  context.arc(x, y, 5, 0, Math.PI * 2, true);
+  context.fill();
+}
