@@ -246,11 +246,14 @@ rhit.HomePageManager = class {
  * 
  * @param {string} uid
  */
-rhit.buildHomePage = async function(uid) {
-	// Get a user reference to loop through for workspaces
+ rhit.buildHomePage = async function(uid) {
+	// Get a user reference to loop through for workspaces then get list of workspaces & convert to display names
 	let userData = [];
 	await firebase.firestore().collection(this.wkspConstants.USERS_REF_KEY).where(`uid`, `==`, `${uid}`).get()
 	.then((querySnapshot) => {
+		if (querySnapshot.docs.length == 0) {
+			rhit.newUser(uid);
+		}
 		querySnapshot.forEach((doc) => {
 			rhit.userID = doc.id;
 			for (const [key, value] of Object.entries(doc.data())) {
@@ -261,13 +264,6 @@ rhit.buildHomePage = async function(uid) {
 			}
 		})
 	});
-	// if (userRef.empty) {
-	// 	console.log(`  BuildHomePage: No user found. Creating user`)
-	// 	await rhit.newUser(user);
-	// 	userRef = await firebase.firestore().collection(this.wkspConstants.USERS_REF_KEY).where(`uid`, `==`, `${uid}`);
-	// }
-
-	// Get list of workspaces & convert to display names
 	
 	return userData;
 
@@ -285,22 +281,9 @@ rhit.buildHomePage = async function(uid) {
  * @param {string} uid 
  */
  rhit.newUser = async function(uid) {
-	
-	let wkspName = `${uid}s-workspace`;
-	let wkspId;
-	let wkspRef = await firebase.firestore().collection(rhit.wkspConstants.WORKSPACES_REF_KEY);
-	wkspRef.add({
-		name: wkspName
-	}).then(doc => {
-		console.log(`  NewUser: Workspace created for ${uid}`)
-		wkspId = doc.id;
-
-	});
-
 	let userRef = await firebase.firestore().collection(rhit.wkspConstants.USERS_REF_KEY);	
 	userRef.add({
 		uid: `${uid}`,
-		[`wksp-${uid}s-workspace`]: wkspId
 	}).then(doc => {
 		console.log(`  NewUser: User doc created for ${uid}`);
 	});
@@ -363,6 +346,15 @@ rhit.WorkspacePageController = class {
 																	${rhit.wkspConstants.PDF_URL}
 																	${rhit.wkspConstants.PDF_HTML_END}`;
 		});
+		document.querySelector("#submitCreateWksp").addEventListener('click', () => {
+			let wkspName = document.querySelector("#inputWkspName").value;
+			let wkspJoin = document.querySelector("#inputJoinCode").value;
+			rhit.homePageManager.addWorkspace(wkspName, wkspJoin);
+		})
+		document.querySelector("#submitJoinWksp").addEventListener('click', () => {
+			let joinCode = document.querySelector("#inputJoinCode2").value;
+			rhit.homePageManager.joinWorkspace(joinCode);
+		})
 	}
 
 	/**
