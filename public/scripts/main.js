@@ -252,7 +252,7 @@ rhit.HomePageManager = class {
 	await firebase.firestore().collection(this.wkspConstants.USERS_REF_KEY).where(`uid`, `==`, `${uid}`).get()
 	.then((querySnapshot) => {
 		if (querySnapshot.docs.length == 0) {
-			rhit.newUser(uid);
+			await rhit.newUser(uid);
 		}
 		querySnapshot.forEach((doc) => {
 			rhit.userID = doc.id;
@@ -304,12 +304,12 @@ rhit.WorkspacePageController = class {
 	 * @param {string} uid
 	 * @param {string} wksp
 	 */
-	constructor(newSpace, uid, wksp) {
+	constructor(uid, wksp) {
 		/*
 		  Adding listeners to Workspace Page Buttons
 		*/
 		this.createListeners();
-		this.manager = new rhit.WorkspaceManager(newSpace, uid, wksp);
+		this.manager = new rhit.WorkspaceManager(uid, wksp);
 
 	}
 
@@ -393,32 +393,21 @@ rhit.WorkspacePageController = class {
 rhit.WorkspaceManager = class {
 
 	/**
-	 * 
-	 * @param {boolean} newSpace 
+	 *  
 	 * @param {string} uid
+	 * @param {string} wkspId
 	 */
-	constructor(newSpace, uid) {
+	constructor(uid, wkspId, members, fileNames) {
 
 		this._uid = uid;
+		this._wkspId = wkspId;
+		this._memberList = members;
+		this._fileList = fileNames;
+		
 		this._unsubscribe;
-		this._fileDocumentSnapshots;
-		this._memberList;
 		this._filesRef = firebase.firestore().collection('Files');
-		this._wksp = firebase.firestore().collection('Workspaces').doc()
-		if (newSpace) {
-			this._createNewWorkspace(this._ref, this.uid).then(refs => {
-
-				let files = [];
-				let members = [this.uid];
-
-
-			});
-			// Still need to assign stuff
-		} else {
-			
-			
-			
-		}
+		this._wkspRef = firebase.firestore().collection('Workspaces').doc(wkspId);
+		
 	}
 
 	/**
@@ -438,15 +427,29 @@ rhit.WorkspaceManager = class {
 		return file;
 	}
 
-	// Saves the current file to storage
-	async saveFile(type, fileData) {
-		let path = `${this.wkspId}/${this._currentFileName}`;
+	/**
+	 * @typedef {Object} WKSPTxtFile
+	 * @property {File} file
+	 * @property {string} name
+	 * 
+	 * @param {File} file
+	 * @param {string} name
+	 * @returns {WKSPTxtFile}
+	 */
+	WKSPTxtFile(file, name) {
+		return {file: file, name: name};
+	}
+
+	/**
+	 * Saves a text document
+	 * 
+	 * @param {WKSPTxtFile} file 
+	 */
+	async saveTxtFile(file) {
+		let path = `${this.wkspId}/${file.name}`;
 		let fileRef = await this._storageRef.child(path);
-		if (type == 'text') {
-			this._file = await this.createFileObj(fileData.content, fileData.name);
-		}
-		fileRef.put(this._file).then(snapshot => {
-		console.log(`  SaveFile: File saved at ${path}`);
+		fileRef.put(file).then(snapshot => {
+			console.log(`  SaveFile: File saved at ${path}`);
 		});
 	}
   
@@ -480,17 +483,39 @@ rhit.WorkspaceManager = class {
  */
  rhit.buildWorkspacePage = async function(uid, wkspName) {
 
+	let wkspId;
+	// First, query user to find wkspId
+	firebase.firestore().collection(rhit.wkspConstants.USERS_REF_KEY).where("uid", "==", `${uid}`).get()
+		.then(querySnapshot => {
+			let userDoc = querySnapshot.docs[0];
+			for (const [key, value] of Object.entries(userDoc.data())) {
+				let name = key.split('-')[1];
+				if (name == wkspName) {
+					wkspId = value;
+					break;
+				}
+			}
+		});
 	
-	let userDocSnapshot = await firebase.firestore().collection(rhit.wkspConstants.USERS_REF_KEY).where("uid", "==", `${uid}`).get()
-	if (userDocSnapshot.empty) {
-		console.log(`  BuildWorkspacePage: User query returned empty -> Make document for user ${uid}`);
-		return;
-	}
+	// Next, use wkspId to query files to find which ones belong to wksp
+	let files = [];
+	firebase.firestore().collection(rhit.wkspConstants.FILES_REF_KEY).where("workspace", "==", `${wkspid}`).get()
+		.then(querySnapshot => {
+			querySnapshot.docs.forEach(doc => {
+				files.push({name: doc.get('name'), ref: doc.get('ref'), type: doc.get('type')});
+			});
+		});
 
-	// if (!userDocSnapshot.get(`wksp-${wkspName}`)) {
-	// 	console.log(`  BuildWorkspacePage: Workspace 'wksp-${wkspName}' does not exist`);
-	// 	return;
-	// }
+	// Rinse & repeat with users
+	let members = [];
+	firebase.firestore().collection(rhit.wkspConstants.USERS_REF_KEY).where(`wksp-${wkspName}`, `==`, `${wkspId}`).get()
+		.then(querySnapshot => {
+			querySnapshot.docs.forEach(doc => {
+				members.push(doc.get('uid'));
+			});
+		});
+	
+	return {id: wkspId, files: files, members: members}
 
 }
 
