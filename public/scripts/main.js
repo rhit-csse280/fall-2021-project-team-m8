@@ -22,6 +22,25 @@ rhit.wkspConstants = {
 
 }
 
+rhit.CONSTANTS.FB_COLLECTIONS = {
+	FILES: 'FileRefs',
+	USERS: 'Users',
+	WKSP: 'Workspaces'
+}
+
+rhit.CONSTANTS.FB_WORKSPACES = {
+	NAME: 'name',
+	JOIN_CODE: 'join'
+}
+
+rhit.CONSTANTS.FB_FILES = {
+	FILES_COLLECTION: 'Files',
+	FILES_NAME: 'name', 
+	FILES_TYPE: 'type',
+	FILES_REF: 'ref',
+	FILES_WKSP: 'workspace'
+}
+
 rhit.WKSP_KEY_NAME = "name"
 rhit.WKSP_KEY_JOINCODE = "join";
 rhit.FB_WORKSPACE_COLLECTION = "Workspaces"
@@ -345,9 +364,12 @@ rhit.WorkspacePageController = class {
 			rhit.fbAuthManager.signOut();
 		}
 		document.querySelector("#wkspText").addEventListener('click', ()=> {
+			// this.manager.saveOldFile();
 			document.querySelector(".wksp-blank-page").innerHTML = rhit.wkspConstants.TEXTAREA_HTML;
 		});
 		document.querySelector("#wkspCanvas").addEventListener('click', ()=> {
+			// this.manager.saveOldFile();
+
 			document.querySelector(".wksp-blank-page").innerHTML = `${rhit.wkspConstants.CANVAS_HTML}`;
 			/**@type {HTMLCanvasElement} */
 			let canvas = document.querySelector('#testCanvas');
@@ -370,6 +392,7 @@ rhit.WorkspacePageController = class {
 			})
 		});
 		document.querySelector("#wkspPDF").addEventListener('click', ()=> {
+			// this.manager.saveOldFile();
 			document.querySelector(".wksp-blank-page").innerHTML = `${rhit.wkspConstants.PDF_HTML_START}
 																	${rhit.wkspConstants.PDF_URL}
 																	${rhit.wkspConstants.PDF_HTML_END}`;
@@ -432,7 +455,8 @@ rhit.WorkspaceManager = class {
 		this._memberList = members;
 		this._fileList = fileNames;
 		
-		this._fileInfo = {}
+		/**@type {FileInfo} */
+		this._fileInfo;
 		this._unsubscribe;
 		console.log(wkspId);
 		this._filesRef = firebase.firestore().collection(rhit.FB_FILES_COLLECTION);
@@ -458,23 +482,20 @@ rhit.WorkspaceManager = class {
 		return file;
 	}
 
-	/**
-	 * @typedef {Object} WKSPTxtFile
-	 * @property {File} file
-	 * @property {string} name
-	 * 
-	 * @param {File} file
-	 * @param {string} name
-	 * @returns {WKSPTxtFile}
-	 */
-	WKSPTxtFile(file, name) {
-		return {file: file, name: name};
-	}
-
 	async createFile(type, name) {
-		this._filesRef.add({
+		// Get name/type from modal
 
-		})
+		let id;
+		this._filesRef.add({
+			[rhit.CONSTANTS.FB_FILES.FILES_NAME]: name,
+			[rhit.CONSTANTS.FB_FILES.FILES_REF]: 'N/A', // Ref will be created upon first save
+			[rhit.CONSTANTS.FB_FILES.FILES_TYPE]: type,
+			[rhit.CONSTANTS.FB_FILES.FILES_WKSP]: this._wkspId
+		}).then(docRef => {
+			id = docRef.id;
+		});
+
+		this._fileInfo = this._makeFileInfo(name, type, id);
 	}
 
 	/**
@@ -488,16 +509,18 @@ rhit.WorkspaceManager = class {
 	 * @param {string} id
 	 * @returns {FileInfo}
 	 */
-	_fileInfo(name, type, id) {
+	_makeFileInfo(name, type, id) {
 		return {name: name, type: type, id: id};
 	}
 
 	/**
-	 * Saves a text document
-	 * 
-	 * @param {WKSPTxtFile} file 
+	 * Saves a document
 	 */
-	async saveTxtFile(file) {
+	async saveOldFile() {
+		switch (this._fileInfo.type) {
+
+		}
+
 		let path = `${this.wkspId}/${file.name}`;
 		let fileRef = await this._storageRef.child(path);
 		fileRef.put(file).then(snapshot => {
