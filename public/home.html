@@ -20,36 +20,98 @@
     </nav>
     <main class="bmd-layout-content">
       <div class="welcome">
-        <p>Welcome back! Enjoy an efficient session on SquadM8's Workspace</p>
+        <p id="welcomeText"></p>
       </div>
     
       <div class="new-workspace">
         <div class="createwksp">
           <p>Create a Workspace</p>
-          <input type="text" placeholder="Workplace name">
-          <input type="text" placeholder="Join code">
+          <input id="wkspName" type="text" placeholder="Workplace name">
+          <input id="wkspJoin" type="text" placeholder="Join code">
           <br>
-          <button class="btn btn-outline">Create</button>
+          <button id="createButton" class="btn btn-outline">Create</button>
         </div>
         <div class="joinwksp">
           <p>Join a Workspace</p>
-          <input type="text" placeholder="Join code">
+          <input id="wkspJoinCode" type="text" placeholder="Join code">
           <br>
-          <button class="btn btn-outline">Join</button>
+          <button id="joinButton" class="btn btn-outline">Join</button>
         </div>
       </div>
     
       <div class="load-workspace">
         <p>Your workspaces</p>
         <div id="workspacesBox">
-          <a id="workspaceName">My workspace</a>
         </div>
         <div id="mobileButtons">
-          <button id="mobileCreate" class="btn">Create</button>
-          <button id="mobileJoin" class="btn">Join</button>
+          <button id="mobileCreate" data-toggle="modal" data-target="#createWorkspace" class="btn">Create</button>
+          <button id="mobileJoin" data-toggle="modal" data-target="#joinWorkspace" class="btn">Join</button>
         </div>
       </div>
     </main>
+  </div>
+
+  <!-- Modal -->
+<div
+class="modal fade"
+id="createWorkspace"
+tabindex="-1"
+aria-labelledby="Create workspace"
+aria-hidden="true"
+>
+<div class="modal-dialog modal-dialog-centered">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h5 class="modal-title">Create Workspace</h5>
+    </div>
+    <div class="modal-body">
+      <div class="form-group bmd-form-group">
+        <label for="inputWkspName" class="bmd-label-floating">Workspace Name</label>
+        <input type="text" class="form-control" id="inputWkspName">
+      </div>
+      <div class="form-group bmd-form-group">
+        <label for="inputJoinCode" class="bmd-label-floating">Join Code</label>
+        <input type="text" class="form-control" id="inputJoinCode">
+        <span class="bmd-help">This is the code people will use to join your workspace</span>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" data-dismiss="modal">
+        CANCEL
+      </button>
+      <button id="submitCreateWksp" type="button" class="btn btn-primary" data-dismiss="modal">CREATE</button>
+    </div>
+  </div>
+</div>
+</div>
+
+  <!-- Modal -->
+  <div
+  class="modal fade"
+  id="joinWorkspace"
+  tabindex="-1"
+  aria-labelledby="Join workspace"
+  aria-hidden="true"
+  >
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Join Workspace</h5>
+      </div>
+      <div class="modal-body">
+        <div class="form-group bmd-form-group">
+          <label for="inputJoinCode2" class="bmd-label-floating">Join Code</label>
+          <input type="text" class="form-control" id="inputJoinCode2">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">
+          CANCEL
+        </button>
+        <button id="submitJoinWksp" type="button" class="btn btn-primary" data-dismiss="modal">Join</button>
+      </div>
+    </div>
+  </div>
   </div>
 
 
