@@ -447,19 +447,23 @@ rhit.WorkspaceManager = class {
 	}
 
 	// Saves the current file to storage
-	async saveFile() {
+	async saveFile(type, fileData) {
 		let path = `${this.wkspId}/${this._currentFileName}`;
-		let fileRef = this._storageRef.child(path);
+		let fileRef = await this._storageRef.child(path);
+		if (type == 'text') {
+			this._file = await this.createFileObj(fileData.content, fileData.name);
+		}
 		fileRef.put(this._file).then(snapshot => {
 		console.log(`  SaveFile: File saved at ${path}`);
 		});
 	}
   
 	// Gets a new document
-	async getFile(fileName) {
+	async getFileURL(fileName) {
 		let path = `${this.wkspId}/${fileName}`;
-		let fileRef = this._storageRef.child(path);
-		let url = fileRef.getDownloadURL();
+		let fileRef = await this._storageRef.child(path);
+		let url = await fileRef.getDownloadURL();
+		return url;
 	}
 
 	beginListening(changeListener) {
