@@ -22,23 +22,29 @@ rhit.wkspConstants = {
 
 }
 
-rhit.CONSTANTS.FB_COLLECTIONS = {
+rhit.FB_COLLECTIONS = {
 	FILES: 'FileRefs',
 	USERS: 'Users',
 	WKSP: 'Workspaces'
 }
 
-rhit.CONSTANTS.FB_WORKSPACES = {
+rhit.FB_WORKSPACES = {
 	NAME: 'name',
 	JOIN_CODE: 'join'
 }
 
-rhit.CONSTANTS.FB_FILES = {
+rhit.FB_FILES = {
 	FILES_COLLECTION: 'Files',
 	FILES_NAME: 'name', 
 	FILES_TYPE: 'type',
 	FILES_REF: 'ref',
 	FILES_WKSP: 'workspace'
+}
+
+rhit.FILE_TYPES = {
+	TEXT: 'text',
+	PDF:'pdf',
+	CANVAS:'canvas'
 }
 
 rhit.WKSP_KEY_NAME = "name"
@@ -173,9 +179,9 @@ rhit.initializePage = async function(options) {
 		const queryString = window.location.search;
 		const urlParams = new URLSearchParams(queryString);
 		const wkspId = urlParams.get("id");
-		console.log("You are on the workspace page");
+		console.log(`  InitializePage: Loading workspace ${wkspId}`);
 		let wkspData = await rhit.buildWorkspacePage(wkspId);
-		console.log(wkspData);
+		console.log(`  InitialisePage: wkspData =\n  `, wkspData);
 		new rhit.WorkspacePageController(options.uid, wkspId, wkspData);
 	}
 
@@ -338,9 +344,8 @@ rhit.HomePageManager = class {
 rhit.WorkspacePageController = class {
 	
 	/**
-	 * @param {boolean} newSpace
 	 * @param {string} uid
-	 * @param {string} wksp
+	 * @param {string} wkspId
 	 */
 	constructor(uid, wkspId, wkspData) {
 		/*
@@ -352,7 +357,10 @@ rhit.WorkspacePageController = class {
 
 	}
 
-	createListeners() {
+	async createListeners() {
+		/**
+		 * Top menu
+		 */
 		document.querySelector("#wkspDrawerHomeButton").onclick = (event) => {
 			window.location.href = "/home.html";
 		}
@@ -363,36 +371,40 @@ rhit.WorkspacePageController = class {
 		document.querySelector("#navLogOutButton").onclick = (event) => {
 			rhit.fbAuthManager.signOut();
 		}
-		document.querySelector("#wkspText").addEventListener('click', ()=> {
-			// this.manager.saveOldFile();
-			document.querySelector(".wksp-blank-page").innerHTML = rhit.wkspConstants.TEXTAREA_HTML;
-		});
-		document.querySelector("#wkspCanvas").addEventListener('click', ()=> {
-			// this.manager.saveOldFile();
 
-			document.querySelector(".wksp-blank-page").innerHTML = `${rhit.wkspConstants.CANVAS_HTML}`;
-			/**@type {HTMLCanvasElement} */
-			let canvas = document.querySelector('#testCanvas');
-			// Resize canvas to fit
-			fitToContainer(canvas);
-			canvas.addEventListener('mousedown', (event) => {
-				this.drawing = true;
+		/**
+		 * ###############################
+		 * New File Buttons
+		 * ###############################
+		 */
+
+		// Create new text
+		document.querySelector("#submitCreateTxt").addEventListener('click', ()=> {
+			this.manager.saveOldFile().then(() => {
+				document.querySelector(".wksp-blank-page").innerHTML = rhit.wkspConstants.TEXTAREA_HTML;
+				let name = document.querySelector('#inputTxtName').value;
+				// Create a new text file
+				this.manager.createFile(rhit.FILE_TYPES.TEXT, name);
 			});
-			canvas.addEventListener('mouseup', (event) => {
-				this.drawing = false;
-			})
-			canvas.addEventListener('mousemove', (event) => {
-				if (!this.drawing) return;
+			
+		});
 
-				const rect = event.target.getBoundingClientRect();
-			  	const x = event.clientX - rect.left;
-			  	const y = event.clientY - rect.top;
-		  
-			  	this.drawCircle(x, y);
-			})
+		// Create new canvas
+		document.querySelector('#submitCreateCanvas').addEventListener('click', ()=> {
+			// Save old file to database and storage
+			this.manager.saveOldFile().then(() => {
+				this.setCanvasHTML();
+				let name = document.querySelector('#inputCanvasName').value;
+				// Create a new canvas file
+				this.manager.createFile(rhit.FILE_TYPES.CANVAS, name).then(() => {
+
+				});
+			});
 		});
 		document.querySelector("#wkspPDF").addEventListener('click', ()=> {
-			// this.manager.saveOldFile();
+			this.manager.saveOldFile().then(() => {
+
+			});
 			document.querySelector(".wksp-blank-page").innerHTML = `${rhit.wkspConstants.PDF_HTML_START}
 																	${rhit.wkspConstants.PDF_URL}
 																	${rhit.wkspConstants.PDF_HTML_END}`;
@@ -407,6 +419,31 @@ rhit.WorkspacePageController = class {
 			rhit.homePageManager.joinWorkspace(joinCode);
 		})
 	}
+
+	setCanvasHTML() {
+		document.querySelector(".wksp-blank-page").innerHTML = `${rhit.wkspConstants.CANVAS_HTML}`;
+		/**@type {HTMLCanvasElement} */
+		let canvas = document.querySelector('#testCanvas');
+		// Resize canvas to fit
+		fitToContainer(canvas);
+		canvas.addEventListener('mousedown', (event) => {
+			this.drawing = true;
+		});
+		canvas.addEventListener('mouseup', (event) => {
+			this.drawing = false;
+		});
+		canvas.addEventListener('mousemove', (event) => {
+			if (!this.drawing) return;
+
+			const rect = event.target.getBoundingClientRect();
+			const x = event.clientX - rect.left;
+			const y = event.clientY - rect.top;
+		
+			this.drawCircle(x, y);
+		});
+	}
+
+
 
 	/**
 	 * Draws where the mouse is on the canvas
@@ -428,8 +465,6 @@ rhit.WorkspacePageController = class {
 		}
 		let context = canvas.getContext('2d');
 		context.fillStyle = 'rgb(0, 0, 0)';
-	
-		console.log('Canvas and context made');
 	
 		context.beginPath();
 		context.arc(x, y, 5, 0, Math.PI * 2, true);
@@ -456,12 +491,12 @@ rhit.WorkspaceManager = class {
 		this._fileList = fileNames;
 		
 		/**@type {FileInfo} */
-		this._fileInfo;
+		this._fileInfo = null;
 		this._unsubscribe;
-		console.log(wkspId);
-		this._filesRef = firebase.firestore().collection(rhit.FB_FILES_COLLECTION);
-		this._wkspRef = firebase.firestore().collection(rhit.FB_WORKSPACE_COLLECTION).doc(wkspId);
+		this._filesRef = firebase.firestore().collection(rhit.FB_COLLECTIONS.FILES);
+		this._wkspRef = firebase.firestore().collection(rhit.FB_COLLECTIONS.WKSP).doc(wkspId);
 		this._storageRef = firebase.storage().ref();
+		console.log(`  WorkspaceManager: Constructed with id ${this._wkspId}`);
 		
 	}
 
@@ -482,20 +517,27 @@ rhit.WorkspaceManager = class {
 		return file;
 	}
 
+	async loadFile(type, name) {
+
+	}
+
 	async createFile(type, name) {
-		// Get name/type from modal
 
-		let id;
-		this._filesRef.add({
-			[rhit.CONSTANTS.FB_FILES.FILES_NAME]: name,
-			[rhit.CONSTANTS.FB_FILES.FILES_REF]: 'N/A', // Ref will be created upon first save
-			[rhit.CONSTANTS.FB_FILES.FILES_TYPE]: type,
-			[rhit.CONSTANTS.FB_FILES.FILES_WKSP]: this._wkspId
-		}).then(docRef => {
-			id = docRef.id;
+		return new Promise((resolve, reject) => {
+			let id;
+			this._filesRef.add({
+				[rhit.FB_FILES.FILES_NAME]: name,
+				[rhit.FB_FILES.FILES_REF]: `${this._wkspId}/${name}`, // Ref will be created upon first save
+				[rhit.FB_FILES.FILES_TYPE]: type,
+				[rhit.FB_FILES.FILES_WKSP]: this._wkspId
+			}).then(docRef => {
+				id = docRef.id;
+			});
+
+			this._fileInfo = this._makeFileInfo(name, type, id, `${this._wkspId}/${name}`);
+			resolve();
 		});
-
-		this._fileInfo = this._makeFileInfo(name, type, id);
+			
 	}
 
 	/**
@@ -503,29 +545,47 @@ rhit.WorkspaceManager = class {
 	 * @property {string} name
 	 * @property {string} type
 	 * @property {string} id
+	 * @property {string} ref
 	 * 
 	 * @param {string} name
 	 * @param {string} type
 	 * @param {string} id
+	 * @param {string} ref
 	 * @returns {FileInfo}
 	 */
-	_makeFileInfo(name, type, id) {
-		return {name: name, type: type, id: id};
+	_makeFileInfo(name, type, id, ref) {
+		return {name: name, type: type, id: id, ref: ref};
 	}
 
 	/**
 	 * Saves a document
 	 */
 	async saveOldFile() {
-		switch (this._fileInfo.type) {
+		return new Promise((resolve, reject)=>{
+			if (this._fileInfo == null) resolve(); // For loading first file
 
-		}
-
-		let path = `${this.wkspId}/${file.name}`;
-		let fileRef = await this._storageRef.child(path);
-		fileRef.put(file).then(snapshot => {
-			console.log(`  SaveFile: File saved at ${path}`);
-		});
+			let file;
+			switch (this._fileInfo.type) {
+				case ('text'):
+					let text = document.querySelector('#textFile').value;
+					if (!text || text == '') {
+						console.log('  SaveOldFile: There is no text to save');
+						return;
+					}
+					file = this.createFileObj(text, this._fileInfo.name);
+					break;
+				case ('canvas'):
+					break;
+				case ('pdf'):
+					break;
+			}
+	
+			let path = this._fileInfo.ref;
+			this._storageRef.child(path).put(file).then(snapshot => {
+				console.log(`  SaveFile: File saved at ${path}`);
+			});
+			resolve();
+		})
 	}
   
 	// Gets a new document
@@ -553,17 +613,15 @@ rhit.WorkspaceManager = class {
 /**
  * Gets necessary info for WorkspaceManager constructor
  * 
- * @param {string} uid
- * @param {string} wkspName
  */
  rhit.buildWorkspacePage = async function(wkspId) {
-	 console.log('wkspid', wkspId);
+	 console.log('  BuildWorkspacePage: wkspid =', wkspId);
 	 let wkspName
 	firebase.firestore().collection(rhit.FB_WORKSPACE_COLLECTION).doc(wkspId).get()
 	.then((doc) => {	
-		console.log(doc.data())
+		console.log("  BuildWorkspacePage: doc.data() =", doc.data())
 	});
-	console.log("name", wkspName);
+	console.log("  BuildWorkspacePage: wkspName =", wkspName);
 	// Next, use wkspId to query files to find which ones belong to wksp
 	let files = [];
 	firebase.firestore().collection(rhit.wkspConstants.FILES_REF_KEY).where("workspace", "==", `${wkspId}`).get()
@@ -589,7 +647,7 @@ rhit.WorkspaceManager = class {
 
 /* Main */
 /** function and class syntax examples */
-rhit.main = function () {
+rhit.main = async function () {
 	console.log("Ready");
 
 	/**
