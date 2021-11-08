@@ -45,6 +45,19 @@ function htmlToElement(html) {
 	return template.content.firstChild;
 }
 
+/**
+ * From https://stackoverflow.com/a/10215724
+ * @param {HTMLCanvasElement} canvas 
+ */
+function fitToContainer(canvas){
+	// Make it visually fill the positioned parent
+	canvas.style.width ='100%';
+	canvas.style.height='100%';
+	// ...then set the internal size to match
+	canvas.width  = canvas.offsetWidth;
+	canvas.height = canvas.offsetHeight;
+  }
+
 
 
 /**
@@ -144,7 +157,7 @@ rhit.initializePage = async function(options) {
 		console.log("You are on the workspace page");
 		let wkspData = await rhit.buildWorkspacePage(wkspId);
 		console.log(wkspData);
-		new rhit.WorkspacePageController();
+		new rhit.WorkspacePageController(options.uid, wkspId, wkspData);
 	}
 
 	if (document.querySelector("#landingPage")) {
@@ -310,12 +323,12 @@ rhit.WorkspacePageController = class {
 	 * @param {string} uid
 	 * @param {string} wksp
 	 */
-	constructor(uid, wksp) {
+	constructor(uid, wkspId, wkspData) {
 		/*
 		  Adding listeners to Workspace Page Buttons
 		*/
 		this.createListeners();
-		this.manager = new rhit.WorkspaceManager(uid, wksp);
+		this.manager = new rhit.WorkspaceManager(uid, wkspId, wkspData.members, wkspData.files);
 
 	}
 
@@ -489,11 +502,13 @@ rhit.WorkspaceManager = class {
  * @param {string} wkspName
  */
  rhit.buildWorkspacePage = async function(wkspId) {
-	let wkspName = firebase.firestore().collection(rhit.FB_WORKSPACE_COLLECTION).doc(wkspId).get()
-	.then(() => {
-		wkspName = doc.data().name;
+	 console.log('wkspid', wkspId);
+	 let wkspName
+	firebase.firestore().collection(rhit.FB_WORKSPACE_COLLECTION).doc(wkspId).get()
+	.then((doc) => {	
+		console.log(doc.data())
 	});
-	console.log(wkspName);
+	console.log("name", wkspName);
 	// Next, use wkspId to query files to find which ones belong to wksp
 	let files = [];
 	firebase.firestore().collection(rhit.wkspConstants.FILES_REF_KEY).where("workspace", "==", `${wkspId}`).get()
