@@ -202,7 +202,7 @@ rhit.HomePageController = class {
 	constructor(wksps, uid) {
 		let workspaces = "";
 		for (let workspace of wksps) {
-			workspaces += `<a class='workspace-link' href=/workspace.html?id=${workspace.id}'>${workspace.name}</a><hr>`
+			workspaces += `<a class='workspace-link' href=/workspace.html?id=${workspace.id}>${workspace.name}</a><hr>`
 		}
 		document.querySelector("#workspacesBox").innerHTML = workspaces;
 		document.querySelector("#navMessage").innerHTML = `Hey, ${rhit.fbAuthManager.uid}`;
@@ -443,7 +443,19 @@ rhit.WorkspacePageController = class {
 		});
 	}
 
+	/**
+	 * Note HTML changes needed in workspace.html before
+	 * finishing
+	 */
+	setFileList() {
+		let fileParent = document.querySelector('#');
 
+		let htmlStr = `<div class="wksp-list-item">${name}</div>`;
+	}
+
+	setMemberList() {
+		let memberParent = document.querySelector('#')
+	}
 
 	/**
 	 * Draws where the mouse is on the canvas
@@ -615,13 +627,11 @@ rhit.WorkspaceManager = class {
  * 
  */
  rhit.buildWorkspacePage = async function(wkspId) {
-	 console.log('  BuildWorkspacePage: wkspid =', wkspId);
-	 let wkspName
+	console.log('  BuildWorkspacePage: wkspid =', wkspId);
 	firebase.firestore().collection(rhit.FB_WORKSPACE_COLLECTION).doc(wkspId).get()
 	.then((doc) => {	
 		console.log("  BuildWorkspacePage: doc.data() =", doc.data())
 	});
-	console.log("  BuildWorkspacePage: wkspName =", wkspName);
 	// Next, use wkspId to query files to find which ones belong to wksp
 	let files = [];
 	firebase.firestore().collection(rhit.wkspConstants.FILES_REF_KEY).where("workspace", "==", `${wkspId}`).get()
