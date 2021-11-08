@@ -44,6 +44,8 @@
  * 
  * Make invisible image element -> download old canvas image
  * 
+ * Draw old image onto new canvas https://www.w3schools.com/tags/canvas_drawimage.asp
+ * 
  */
 
 
@@ -76,4 +78,60 @@ function drawCircle(x, y) {
   context.beginPath();
   context.arc(x, y, 5, 0, Math.PI * 2, true);
   context.fill();
+}
+
+/**
+ * ######################################################################################################################################
+ * 
+ * TEXT FILES
+ * 
+ * ######################################################################################################################################
+ */
+
+/**
+ * For creating plain text files
+ * 
+ * @param {string} content 
+ * @param {string} name 
+ * @returns {File}
+ */
+ function createFileObj(content, name){
+  const file = new File(
+    [content],
+    `${name}.txt`,
+    { type: "text/plain" }
+  );
+  
+  return file;
+}
+
+// ADD THIS CSS RULE FOR TEXTAREA
+// #workspacePage #textFile {
+//   width: 100%;
+//   height: 100%; 
+//   box-sizing: border-box;
+// }
+
+/**
+ * ######################################################################################################################################
+ * 
+ * FILE UPLOAD/DOWNLOAD
+ * 
+ * ######################################################################################################################################
+ */
+
+// Saves the current file to storage
+async saveFile() {
+  let path = `${this.wkspId}/${this._currentFileName}`;
+  let fileRef = this._storageRef.child(path);
+  fileRef.put(this._file).then(snapshot => {
+    console.log(`  SaveFile: File saved at ${path}`);
+  });
+}
+
+// Gets a new document
+async getFile(fileName) {
+  let path = `${this.wkspId}/${fileName}`;
+  let fileRef = this._storageRef.child(path);
+  let url = fileRef.getDownloadURL();
 }
