@@ -329,6 +329,7 @@ rhit.WorkspacePageController = class {
 		*/
 		this.createListeners();
 		this.manager = new rhit.WorkspaceManager(uid, wkspId, wkspData.members, wkspData.files);
+		this.drawing = false;
 
 	}
 
@@ -353,12 +354,20 @@ rhit.WorkspacePageController = class {
 			// Resize canvas to fit
 			fitToContainer(canvas);
 			canvas.addEventListener('mousedown', (event) => {
-			  const rect = event.target.getBoundingClientRect();
-			  const x = event.clientX - rect.left;
-			  const y = event.clientY - rect.top;
-		  
-			  this.drawCircle(x, y);
+				this.drawing = true;
 			});
+			canvas.addEventListener('mouseup', (event) => {
+				this.drawing = false;
+			})
+			canvas.addEventListener('mousemove', (event) => {
+				if (!this.drawing) return;
+
+				const rect = event.target.getBoundingClientRect();
+			  	const x = event.clientX - rect.left;
+			  	const y = event.clientY - rect.top;
+		  
+			  	this.drawCircle(x, y);
+			})
 		});
 		document.querySelector("#wkspPDF").addEventListener('click', ()=> {
 			document.querySelector(".wksp-blank-page").innerHTML = `${rhit.wkspConstants.PDF_HTML_START}
@@ -423,10 +432,12 @@ rhit.WorkspaceManager = class {
 		this._memberList = members;
 		this._fileList = fileNames;
 		
+		this._fileInfo = {}
 		this._unsubscribe;
 		console.log(wkspId);
 		this._filesRef = firebase.firestore().collection(rhit.FB_FILES_COLLECTION);
 		this._wkspRef = firebase.firestore().collection(rhit.FB_WORKSPACE_COLLECTION).doc(wkspId);
+		this._storageRef = firebase.storage().ref();
 		
 	}
 
@@ -458,6 +469,27 @@ rhit.WorkspaceManager = class {
 	 */
 	WKSPTxtFile(file, name) {
 		return {file: file, name: name};
+	}
+
+	async createFile(type, name) {
+		this._filesRef.add({
+
+		})
+	}
+
+	/**
+	 * @typedef {Object} FileInfo
+	 * @property {string} name
+	 * @property {string} type
+	 * @property {string} id
+	 * 
+	 * @param {string} name
+	 * @param {string} type
+	 * @param {string} id
+	 * @returns {FileInfo}
+	 */
+	_fileInfo(name, type, id) {
+		return {name: name, type: type, id: id};
 	}
 
 	/**
