@@ -26,6 +26,7 @@ rhit.WKSP_KEY_NAME = "name"
 rhit.WKSP_KEY_JOINCODE = "join";
 rhit.FB_WORKSPACE_COLLECTION = "Workspaces"
 rhit.FB_USERS_COLLECTION = "Users"
+rhit.FB_FILES_COLLECTION = "Files"
 rhit.homePageManager;
 rhit.userID;
 
@@ -137,8 +138,12 @@ rhit.initializePage = async function(options) {
 	if (document.querySelector("#workspacePage")) {
 		if (!options.uid) return;
 		// This is bad, find a way to handle it
+		const queryString = window.location.search;
+		const urlParams = new URLSearchParams(queryString);
+		const wkspId = urlParams.get("id");
 		console.log("You are on the workspace page");
-		await rhit.buildWorkspacePage(options.uid);
+		let wkspData = await rhit.buildWorkspacePage(wkspId);
+		console.log(wkspData);
 		new rhit.WorkspacePageController();
 	}
 
@@ -252,7 +257,7 @@ rhit.HomePageManager = class {
 	await firebase.firestore().collection(this.wkspConstants.USERS_REF_KEY).where(`uid`, `==`, `${uid}`).get()
 	.then((querySnapshot) => {
 		if (querySnapshot.docs.length == 0) {
-			await rhit.newUser(uid);
+			rhit.newUser(uid);
 		}
 		querySnapshot.forEach((doc) => {
 			rhit.userID = doc.id;
@@ -286,6 +291,7 @@ rhit.HomePageManager = class {
 		uid: `${uid}`,
 	}).then(doc => {
 		console.log(`  NewUser: User doc created for ${uid}`);
+		rhit.userID = doc.id;
 	});
 }
 
@@ -397,7 +403,7 @@ rhit.WorkspaceManager = class {
 	 * @param {string} uid
 	 * @param {string} wkspId
 	 */
-	constructor(uid, wkspId, members, fileNames) {
+	constructor(uid, wkspId, members=[], fileNames=[]) {
 
 		this._uid = uid;
 		this._wkspId = wkspId;
@@ -405,8 +411,9 @@ rhit.WorkspaceManager = class {
 		this._fileList = fileNames;
 		
 		this._unsubscribe;
-		this._filesRef = firebase.firestore().collection('Files');
-		this._wkspRef = firebase.firestore().collection('Workspaces').doc(wkspId);
+		console.log(wkspId);
+		this._filesRef = firebase.firestore().collection(rhit.FB_FILES_COLLECTION);
+		this._wkspRef = firebase.firestore().collection(rhit.FB_WORKSPACE_COLLECTION).doc(wkspId);
 		
 	}
 
@@ -481,25 +488,15 @@ rhit.WorkspaceManager = class {
  * @param {string} uid
  * @param {string} wkspName
  */
- rhit.buildWorkspacePage = async function(uid, wkspName) {
-
-	let wkspId;
-	// First, query user to find wkspId
-	firebase.firestore().collection(rhit.wkspConstants.USERS_REF_KEY).where("uid", "==", `${uid}`).get()
-		.then(querySnapshot => {
-			let userDoc = querySnapshot.docs[0];
-			for (const [key, value] of Object.entries(userDoc.data())) {
-				let name = key.split('-')[1];
-				if (name == wkspName) {
-					wkspId = value;
-					break;
-				}
-			}
-		});
-	
+ rhit.buildWorkspacePage = async function(wkspId) {
+	let wkspName = firebase.firestore().collection(rhit.FB_WORKSPACE_COLLECTION).doc(wkspId).get()
+	.then(() => {
+		wkspName = doc.data().name;
+	});
+	console.log(wkspName);
 	// Next, use wkspId to query files to find which ones belong to wksp
 	let files = [];
-	firebase.firestore().collection(rhit.wkspConstants.FILES_REF_KEY).where("workspace", "==", `${wkspid}`).get()
+	firebase.firestore().collection(rhit.wkspConstants.FILES_REF_KEY).where("workspace", "==", `${wkspId}`).get()
 		.then(querySnapshot => {
 			querySnapshot.docs.forEach(doc => {
 				files.push({name: doc.get('name'), ref: doc.get('ref'), type: doc.get('type')});
@@ -515,7 +512,7 @@ rhit.WorkspaceManager = class {
 			});
 		});
 	
-	return {id: wkspId, files: files, members: members}
+	return {files: files, members: members}
 
 }
 
