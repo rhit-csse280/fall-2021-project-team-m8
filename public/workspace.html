@@ -38,13 +38,13 @@
             <button id="wkspInvite" type="button" class="btn btn-primary btn-outline-primary wksp-button">
               Invite
             </button> 
-            <button id="wkspText" type="button" class="btn btn-primary btn-outline-primary wksp-button">
+            <button id="wkspText" type="button" class="btn btn-primary btn-outline-primary wksp-button" data-toggle="modal" data-target="#createText">
               Text
             </button>  
-            <button id="wkspPDF" type="button" class="btn btn-primary btn-outline-primary wksp-button">
+            <button id="wkspPDF" type="button" class="btn btn-primary btn-outline-primary wksp-button" data-toggle="modal" data-target="#uploadPDF">
               PDF
             </button>  
-            <button id="wkspCanvas" type="button" class="btn btn-primary btn-outline-primary wksp-button">
+            <button id="wkspCanvas" type="button" class="btn btn-primary btn-outline-primary wksp-button" data-toggle="modal" data-target="#createCanvas">
               Canvas
             </button>  
           </nav>
@@ -91,9 +91,9 @@
           </div>
           
           <div class="wksp-mobile-button-group">
-            <button id="wkspTextMobile" class="btn">Text</button>
-            <button id="wkspPDFMobile" class="btn">Pdf</button>
-            <button id="wkspCanvasMobile" class="btn">Draw</button>
+            <button id="wkspTextMobile" class="btn" data-toggle="modal" data-target="#createText">Text</button>
+            <button id="wkspPDFMobile" class="btn" data-toggle="modal" data-target="#uploadPDF">Pdf</button>
+            <button id="wkspCanvasMobile" class="btn" data-toggle="modal" data-target="#createCanvas">Draw</button>
             <button id="wkspOptionsMobile" class="btn"><i class="material-icons">menu</i></button>
           </div>
         </div>
@@ -160,6 +160,92 @@ aria-hidden="true"
           CANCEL
         </button>
         <button id="submitJoinWksp" type="button" class="btn btn-primary" data-dismiss="modal">Join</button>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <!-- Modal -->
+  <div
+  class="modal fade"
+  id="createText"
+  tabindex="-1"
+  aria-labelledby="Create text"
+  aria-hidden="true"
+  >
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Create Text</h5>
+      </div>
+      <div class="modal-body">
+        <div class="form-group bmd-form-group">
+          <label for="inputTxtName" class="bmd-label-floating">Name</label>
+          <input type="text" class="form-control" id="inputTxtName">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">
+          CANCEL
+        </button>
+        <button id="submitJoinWksp" type="button" class="btn btn-primary" data-dismiss="modal">Create</button>
+      </div>
+    </div>
+  </div>
+  </div>
+
+    <!-- Modal -->
+    <div
+    class="modal fade"
+    id="uploadPDF"
+    tabindex="-1"
+    aria-labelledby="Upload PDF"
+    aria-hidden="true"
+    >
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">New PDF</h5>
+        </div>
+        <div class="modal-body">
+          <div class="form-group bmd-form-group">
+            <input type="file" id="pdfFile" name="filename">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">
+            CANCEL
+          </button>
+          <button id="submitJoinWksp" type="button" class="btn btn-primary" data-dismiss="modal">UPLOAD</button>
+        </div>
+      </div>
+    </div>
+    </div>
+
+    <!-- Modal -->
+  <div
+  class="modal fade"
+  id="createCanvas"
+  tabindex="-1"
+  aria-labelledby="Create new canvas"
+  aria-hidden="true"
+  >
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Create canvas</h5>
+      </div>
+      <div class="modal-body">
+        <div class="form-group bmd-form-group">
+          <label for="inputCanvasName" class="bmd-label-floating">Name</label>
+          <input type="text" class="form-control" id="inputCanvasName">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">
+          CANCEL
+        </button>
+        <button id="submitJoinWksp" type="button" class="btn btn-primary" data-dismiss="modal">Create</button>
       </div>
     </div>
   </div>
