@@ -334,6 +334,7 @@ body {
 .wksp-list-item {
     font-size: 1.5em;
     color: #800000;
+    margin-left: 10px;
 }
 
 .wksp-settings-btn {
@@ -342,6 +343,24 @@ body {
     background-color: #666666;
     margin: 10px;
     
+}
+
+#wkspMembers {
+    height: 140px;
+}
+
+#membersList {
+    height: 75px;
+    overflow: auto;
+}
+
+#wkspFiles {
+    height: 160px;
+}
+
+#filesList {
+    height: 110px;
+    overflow: auto;
 }
 
 .wksp-btn-row {

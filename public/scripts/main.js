@@ -47,13 +47,7 @@ rhit.FILE_TYPES = {
 	CANVAS:'canvas'
 }
 
-rhit.WKSP_KEY_NAME = "name"
-rhit.WKSP_KEY_JOINCODE = "join";
-rhit.FB_WORKSPACE_COLLECTION = "Workspaces"
-rhit.FB_USERS_COLLECTION = "Users"
-rhit.FB_FILES_COLLECTION = "Files"
 rhit.homePageManager;
-rhit.userID;
 
 
 /**
@@ -103,11 +97,21 @@ function fitToContainer(canvas){
 rhit.FbAuthManager = class {
 	constructor() {
 		this._user = null;
+		this.userId = null;
 	}
 
 	async beginListening(changeListener) {
 		firebase.auth().onAuthStateChanged((user) => {
 			this._user = user;
+			firebase.firestore().collection(rhit.FB_COLLECTIONS.USERS).where(`uid`, `==`, `${user.uid}`).get()
+			.then((querySnapshot) => {
+				if (querySnapshot.docs.length == 0) {
+					rhit.newUser(uid);
+				}
+				querySnapshot.forEach((doc) => {
+					this.userId = doc.id;
+				})
+			});
 			changeListener();
 		})
 	}
@@ -152,7 +156,6 @@ rhit.checkForRedirects = function() {
 		window.location.href = "/home.html";
 	}
 	if (!document.querySelector("#landingPage") && !rhit.fbAuthManager.isSignedIn) {
-		console.log("ope");
 		window.location.href = "/";
 	}
 }
@@ -180,9 +183,11 @@ rhit.initializePage = async function(options) {
 		const urlParams = new URLSearchParams(queryString);
 		const wkspId = urlParams.get("id");
 		console.log(`  InitializePage: Loading workspace ${wkspId}`);
-		let wkspData = await rhit.buildWorkspacePage(wkspId);
-		console.log(`  InitialisePage: wkspData =\n  `, wkspData);
-		new rhit.WorkspacePageController(options.uid, wkspId, wkspData);
+		let wkspMembers = await rhit.getWkspMembers(wkspId);
+		let wkspFiles = await rhit.getWkspMembers(wkspId);
+		console.log(wkspMembers);
+		console.log(wkspFiles);
+		new rhit.WorkspacePageController(options.uid, wkspId, wkspMembers, wkspFiles);
 	}
 
 	if (document.querySelector("#landingPage")) {
@@ -233,18 +238,18 @@ rhit.HomePageController = class {
 
 rhit.HomePageManager = class {
 	constructor() {
-		this._workspacesRef = firebase.firestore().collection(rhit.FB_WORKSPACE_COLLECTION);
+		this._workspacesRef = firebase.firestore().collection(rhit.FB_COLLECTIONS.WKSP);
 	}
 
 	addWorkspace(name, join) {
 		let wksp = `wksp-${name}`;
 		this._workspacesRef.add({
-			[rhit.WKSP_KEY_NAME]: name,
-			[rhit.WKSP_KEY_JOINCODE]: join
+			[rhit.FB_WORKSPACES.NAME]: name,
+			[rhit.FB_WORKSPACES.JOIN_CODE]: join
 		})
 		.then(function (docRef) {
 			console.log("Document written with ID: ", docRef.id);
-			let user = firebase.firestore().collection(rhit.FB_USERS_COLLECTION).doc(rhit.userID)
+			let user = firebase.firestore().collection(rhit.FB_COLLECTIONS.USERS).doc(rhit.fbAuthManager.userId)
 			user.update({
 				[wksp]:docRef.id
 			})
@@ -258,7 +263,7 @@ rhit.HomePageManager = class {
 	joinWorkspace(joinCode) {
 		let wkspId;
 		let wkspName;
-		firebase.firestore().collection(rhit.FB_WORKSPACE_COLLECTION).where(`join`, `==`, `${joinCode}`).get()
+		firebase.firestore().collection(rhit.FB_COLLECTIONS.WKSP).where(`join`, `==`, `${joinCode}`).get()
 		.then((querySnapshot) => {
 			querySnapshot.forEach((doc) => {
 				wkspId = doc.id
@@ -267,7 +272,7 @@ rhit.HomePageManager = class {
 		})
 		.then(() => {
 			let wksp = `wksp-${wkspName}`
-			let user = firebase.firestore().collection(rhit.FB_USERS_COLLECTION).doc(rhit.userID)
+			let user = firebase.firestore().collection(rhit.FB_COLLECTIONS.USERS).doc(rhit.fbAuthManager.userId)
 			user.update({
 				[wksp]:wkspId
 			})
@@ -291,6 +296,7 @@ rhit.HomePageManager = class {
  */
  rhit.buildHomePage = async function(uid) {
 	// Get a user reference to loop through for workspaces then get list of workspaces & convert to display names
+	console.log(rhit.fbAuthManager.userId);
 	let userData = [];
 	await firebase.firestore().collection(this.wkspConstants.USERS_REF_KEY).where(`uid`, `==`, `${uid}`).get()
 	.then((querySnapshot) => {
@@ -298,7 +304,7 @@ rhit.HomePageManager = class {
 			rhit.newUser(uid);
 		}
 		querySnapshot.forEach((doc) => {
-			rhit.userID = doc.id;
+			rhit.userId = doc.id;
 			for (const [key, value] of Object.entries(doc.data())) {
 				if (key != "uid") {
 					let name = key.split('-')[1];
@@ -307,6 +313,11 @@ rhit.HomePageManager = class {
 			}
 		})
 	});
+
+	// await firebase.firestore().collection(rhit.FB_COLLECTIONS.USERS).doc(rhit.fbAuthManager.userId)
+	// .then(doc => {
+	// 	console.log(doc);
+	// })
 	
 	return userData;
 
@@ -329,7 +340,7 @@ rhit.HomePageManager = class {
 		uid: `${uid}`,
 	}).then(doc => {
 		console.log(`  NewUser: User doc created for ${uid}`);
-		rhit.userID = doc.id;
+		rhit.userId = doc.id;
 	});
 }
 
@@ -347,12 +358,14 @@ rhit.WorkspacePageController = class {
 	 * @param {string} uid
 	 * @param {string} wkspId
 	 */
-	constructor(uid, wkspId, wkspData) {
+	constructor(uid, wkspId, members, files) {
 		/*
 		  Adding listeners to Workspace Page Buttons
 		*/
 		this.createListeners();
-		this.manager = new rhit.WorkspaceManager(uid, wkspId, wkspData.members, wkspData.files);
+		this.setMemberList(members);
+		this.setFileList(files);
+		this.manager = new rhit.WorkspaceManager(uid, wkspId, members, files);
 		this.drawing = false;
 
 	}
@@ -412,11 +425,11 @@ rhit.WorkspacePageController = class {
 		document.querySelector("#submitCreateWksp").addEventListener('click', () => {
 			let wkspName = document.querySelector("#inputWkspName").value;
 			let wkspJoin = document.querySelector("#inputJoinCode").value;
-			rhit.homePageManager.addWorkspace(wkspName, wkspJoin);
+			this.manager.addWorkspace(wkspName, wkspJoin);
 		})
 		document.querySelector("#submitJoinWksp").addEventListener('click', () => {
 			let joinCode = document.querySelector("#inputJoinCode2").value;
-			rhit.homePageManager.joinWorkspace(joinCode);
+			this.manager.joinWorkspace(joinCode);
 		})
 	}
 
@@ -447,14 +460,25 @@ rhit.WorkspacePageController = class {
 	 * Note HTML changes needed in workspace.html before
 	 * finishing
 	 */
-	setFileList() {
-		let fileParent = document.querySelector('#');
+	setFileList(files) {
+		let fileString = "";
+		for (let i=0; i<files.length; i++) {
+			fileString += `<div class="wksp-list-item">${files[i]}</div>`
+		}
 
-		let htmlStr = `<div class="wksp-list-item">${name}</div>`;
+		document.querySelector("#filesList").innerHTML = fileString;
 	}
 
-	setMemberList() {
-		let memberParent = document.querySelector('#')
+	setMemberList(members) {
+		console.log(members);
+		console.log(members.length);
+		let memberString = "";
+		for (let i=0; i<members.length; i++) {
+			console.log(members[i]);
+			memberString += `<div class="wksp-list-item">${members[i]}</div>`
+		}
+
+		document.querySelector("#membersList").innerHTML = memberString;
 	}
 
 	/**
@@ -501,6 +525,7 @@ rhit.WorkspaceManager = class {
 		this._wkspId = wkspId;
 		this._memberList = members;
 		this._fileList = fileNames;
+		this._workspacesRef = firebase.firestore().collection(rhit.FB_COLLECTIONS.WKSP);
 		
 		/**@type {FileInfo} */
 		this._fileInfo = null;
@@ -620,17 +645,82 @@ rhit.WorkspaceManager = class {
 		
 	}
 
+	addWorkspace(name, join) {
+		let wksp = `wksp-${name}`;
+		this._workspacesRef.add({
+			[rhit.FB_WORKSPACES.NAME]: name,
+			[rhit.FB_WORKSPACES.JOIN_CODE]: join
+		})
+		.then(function (docRef) {
+			console.log("Document written with ID: ", docRef.id);
+			let user = firebase.firestore().collection(rhit.FB_COLLECTIONS.USERS).doc(rhit.fbAuthManager.userId)
+			user.update({
+				[wksp]:docRef.id
+			})
+			window.location.href = `/workspace.html?id=${docRef.id}`
+		})
+		.catch(function (error) {
+			console.log("Error adding document", error);
+		})
+	}
+
+	joinWorkspace(joinCode) {
+		let wkspId;
+		let wkspName;
+		firebase.firestore().collection(rhit.FB_COLLECTIONS.WKSP).where(`join`, `==`, `${joinCode}`).get()
+		.then((querySnapshot) => {
+			querySnapshot.forEach((doc) => {
+				wkspId = doc.id
+				wkspName = doc.data().name;
+			})
+		})
+		.then(() => {
+			let wksp = `wksp-${wkspName}`
+			let user = firebase.firestore().collection(rhit.FB_COLLECTIONS.USERS).doc(rhit.fbAuthManager.userId)
+			user.update({
+				[wksp]:wkspId
+			})
+		})
+		.then(() => {
+			window.location.href = `/workspace.html?id=${wkspId}`
+		})
+		.catch(function (error) {
+			console.log("Error adding document", error);
+		});
+
+	}
+
 }
 
 /**
  * Gets necessary info for WorkspaceManager constructor
  * 
  */
- rhit.buildWorkspacePage = async function(wkspId) {
+ rhit.getWkspMembers = async function(wkspId) {
 	console.log('  BuildWorkspacePage: wkspid =', wkspId);
-	firebase.firestore().collection(rhit.FB_WORKSPACE_COLLECTION).doc(wkspId).get()
+	let wkspName;
+	await firebase.firestore().collection(rhit.FB_COLLECTIONS.WKSP).doc(wkspId).get()
 	.then((doc) => {	
-		console.log("  BuildWorkspacePage: doc.data() =", doc.data())
+		wkspName = doc.get("name");
+	});
+
+	let members = [];
+	firebase.firestore().collection(rhit.wkspConstants.USERS_REF_KEY).where(`wksp-${wkspName}`, `==`, `${wkspId}`).get()
+		.then(querySnapshot => {
+			querySnapshot.docs.forEach(doc => {
+				members.push(doc.get('uid'));
+			});
+		});
+	
+	return members;
+
+}
+
+rhit.getWkspFiles = async function(wkspId) {
+	let wkspName;
+	await firebase.firestore().collection(rhit.FB_COLLECTIONS.WKSP).doc(wkspId).get()
+	.then((doc) => {	
+		wkspName = doc.get("name");
 	});
 	// Next, use wkspId to query files to find which ones belong to wksp
 	let files = [];
@@ -640,18 +730,9 @@ rhit.WorkspaceManager = class {
 				files.push({name: doc.get('name'), ref: doc.get('ref'), type: doc.get('type')});
 			});
 		});
-
-	// Rinse & repeat with users
-	let members = [];
-	firebase.firestore().collection(rhit.wkspConstants.USERS_REF_KEY).where(`wksp-${wkspName}`, `==`, `${wkspId}`).get()
-		.then(querySnapshot => {
-			querySnapshot.docs.forEach(doc => {
-				members.push(doc.get('uid'));
-			});
-		});
 	
-	return {files: files, members: members}
-
+	return files;
+	
 }
 
 
@@ -673,7 +754,7 @@ rhit.main = async function () {
 	rhit.fbAuthManager = new rhit.FbAuthManager();
 	rhit.fbAuthManager.beginListening(async function() {
 		console.log("isSignedIn = ", rhit.fbAuthManager.isSignedIn);
-		rhit.checkForRedirects();
+		await rhit.checkForRedirects();
 		let options = {};
 		if (rhit.fbAuthManager.uid) {
 			options.uid = rhit.fbAuthManager.uid;
