@@ -169,6 +169,10 @@ body {
     font-size: 2rem;
 }
 
+#workspacesBox {
+    overflow: auto;
+}
+
 #dw-s2 {
     background-color: #800000;
 }

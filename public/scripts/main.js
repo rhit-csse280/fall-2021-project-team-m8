@@ -218,7 +218,8 @@ rhit.HomePageController = class {
 		document.querySelector("#createButton").addEventListener("click", () => {
 			let wkspName = document.querySelector("#wkspName").value;
 			let wkspJoin = document.querySelector("#wkspJoin").value;
-			rhit.homePageManager.addWorkspace(wkspName, wkspJoin);
+			rhit.homePageManager.addWorkspace(wkspName, wkspJoin)
+			.then(console.log("hello"));
 		})
 		document.querySelector("#submitCreateWksp").addEventListener("click", () => {
 			let wkspName = document.querySelector("#inputWkspName").value;
@@ -241,23 +242,26 @@ rhit.HomePageManager = class {
 		this._workspacesRef = firebase.firestore().collection(rhit.FB_COLLECTIONS.WKSP);
 	}
 
-	addWorkspace(name, join) {
-		let wksp = `wksp-${name}`;
-		this._workspacesRef.add({
-			[rhit.FB_WORKSPACES.NAME]: name,
-			[rhit.FB_WORKSPACES.JOIN_CODE]: join
-		})
-		.then(function (docRef) {
-			console.log("Document written with ID: ", docRef.id);
-			let user = firebase.firestore().collection(rhit.FB_COLLECTIONS.USERS).doc(rhit.fbAuthManager.userId)
-			user.update({
-				[wksp]:docRef.id
+	async addWorkspace(name, join) {
+		let unique = await rhit.checkUniqueJoin(join)
+		if (unique != false) {
+			let wksp = `wksp-${name}`;
+			this._workspacesRef.add({
+				[rhit.FB_WORKSPACES.NAME]: name,
+				[rhit.FB_WORKSPACES.JOIN_CODE]: join
 			})
-			window.location.href = `/workspace.html?id=${docRef.id}`
-		})
-		.catch(function (error) {
-			console.log("Error adding document", error);
-		})
+			.then(function (docRef) {
+				console.log("Document written with ID: ", docRef.id);
+				let user = firebase.firestore().collection(rhit.FB_COLLECTIONS.USERS).doc(rhit.fbAuthManager.userId)
+				user.update({
+					[wksp]:docRef.id
+				})
+				window.location.href = `/workspace.html?id=${docRef.id}`
+			})
+			.catch(function (error) {
+				console.log("Error adding document", error);
+			})
+		}
 	}
 
 	joinWorkspace(joinCode) {
@@ -645,23 +649,26 @@ rhit.WorkspaceManager = class {
 		
 	}
 
-	addWorkspace(name, join) {
-		let wksp = `wksp-${name}`;
-		this._workspacesRef.add({
-			[rhit.FB_WORKSPACES.NAME]: name,
-			[rhit.FB_WORKSPACES.JOIN_CODE]: join
-		})
-		.then(function (docRef) {
-			console.log("Document written with ID: ", docRef.id);
-			let user = firebase.firestore().collection(rhit.FB_COLLECTIONS.USERS).doc(rhit.fbAuthManager.userId)
-			user.update({
-				[wksp]:docRef.id
+	async addWorkspace(name, join) {
+		let unique = await rhit.checkUniqueJoin(join)
+		if (unique != false) {
+			let wksp = `wksp-${name}`;
+			this._workspacesRef.add({
+				[rhit.FB_WORKSPACES.NAME]: name,
+				[rhit.FB_WORKSPACES.JOIN_CODE]: join
 			})
-			window.location.href = `/workspace.html?id=${docRef.id}`
-		})
-		.catch(function (error) {
-			console.log("Error adding document", error);
-		})
+			.then(function (docRef) {
+				console.log("Document written with ID: ", docRef.id);
+				let user = firebase.firestore().collection(rhit.FB_COLLECTIONS.USERS).doc(rhit.fbAuthManager.userId)
+				user.update({
+					[wksp]:docRef.id
+				})
+				window.location.href = `/workspace.html?id=${docRef.id}`
+			})
+			.catch(function (error) {
+				console.log("Error adding document", error);
+			})
+		}
 	}
 
 	joinWorkspace(joinCode) {
@@ -733,6 +740,20 @@ rhit.getWkspFiles = async function(wkspId) {
 	
 	return files;
 	
+}
+
+rhit.checkUniqueJoin = async function(joinCode) {
+	let unique = false;
+	await firebase.firestore().collection(rhit.FB_COLLECTIONS.WKSP).where(rhit.FB_WORKSPACES.JOIN_CODE, "==", joinCode).get()
+	.then(querySnapshot => {
+		if (querySnapshot.docs.length == 0) {
+			unique = true;
+		} else {
+			alert("A workspace already exists with this join code");
+			unique = false;
+		}
+	})
+	return unique;
 }
 
 
