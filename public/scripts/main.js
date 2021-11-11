@@ -185,8 +185,6 @@ rhit.initializePage = async function(options) {
 		console.log(`  InitializePage: Loading workspace ${wkspId}`);
 		let wkspMembers = await rhit.getWkspMembers(wkspId);
 		let wkspFiles = await rhit.getWkspMembers(wkspId);
-		console.log(wkspMembers);
-		console.log(wkspFiles);
 		new rhit.WorkspacePageController(options.uid, wkspId, wkspMembers, wkspFiles);
 	}
 
@@ -264,29 +262,22 @@ rhit.HomePageManager = class {
 		}
 	}
 
-	joinWorkspace(joinCode) {
+	async joinWorkspace(joinCode) {
 		let wkspId;
 		let wkspName;
-		firebase.firestore().collection(rhit.FB_COLLECTIONS.WKSP).where(`join`, `==`, `${joinCode}`).get()
+		await firebase.firestore().collection(rhit.FB_COLLECTIONS.WKSP).where(`join`, `==`, `${joinCode}`).get()
 		.then((querySnapshot) => {
 			querySnapshot.forEach((doc) => {
 				wkspId = doc.id
 				wkspName = doc.data().name;
 			})
 		})
-		.then(() => {
-			let wksp = `wksp-${wkspName}`
-			let user = firebase.firestore().collection(rhit.FB_COLLECTIONS.USERS).doc(rhit.fbAuthManager.userId)
-			user.update({
-				[wksp]:wkspId
-			})
+		let wksp = `wksp-${wkspName}`
+		let user = firebase.firestore().collection(rhit.FB_COLLECTIONS.USERS).doc(rhit.fbAuthManager.userId)
+		await user.update({
+			[wksp]:wkspId
 		})
-		.then(() => {
-			window.location.href = `/workspace.html?id=${wkspId}`
-		})
-		.catch(function (error) {
-			console.log("Error adding document", error);
-		});
+		window.location.href = `/workspace.html?id=${wkspId}`
 
 	}
 }
@@ -474,11 +465,8 @@ rhit.WorkspacePageController = class {
 	}
 
 	setMemberList(members) {
-		console.log(members);
-		console.log(members.length);
 		let memberString = "";
 		for (let i=0; i<members.length; i++) {
-			console.log(members[i]);
 			memberString += `<div class="wksp-list-item">${members[i]}</div>`
 		}
 
@@ -671,29 +659,22 @@ rhit.WorkspaceManager = class {
 		}
 	}
 
-	joinWorkspace(joinCode) {
+	async joinWorkspace(joinCode) {
 		let wkspId;
 		let wkspName;
-		firebase.firestore().collection(rhit.FB_COLLECTIONS.WKSP).where(`join`, `==`, `${joinCode}`).get()
+		await firebase.firestore().collection(rhit.FB_COLLECTIONS.WKSP).where(`join`, `==`, `${joinCode}`).get()
 		.then((querySnapshot) => {
 			querySnapshot.forEach((doc) => {
 				wkspId = doc.id
 				wkspName = doc.data().name;
 			})
 		})
-		.then(() => {
-			let wksp = `wksp-${wkspName}`
-			let user = firebase.firestore().collection(rhit.FB_COLLECTIONS.USERS).doc(rhit.fbAuthManager.userId)
-			user.update({
-				[wksp]:wkspId
-			})
+		let wksp = `wksp-${wkspName}`
+		let user = firebase.firestore().collection(rhit.FB_COLLECTIONS.USERS).doc(rhit.fbAuthManager.userId)
+		await user.update({
+			[wksp]:wkspId
 		})
-		.then(() => {
-			window.location.href = `/workspace.html?id=${wkspId}`
-		})
-		.catch(function (error) {
-			console.log("Error adding document", error);
-		});
+		window.location.href = `/workspace.html?id=${wkspId}`
 
 	}
 
