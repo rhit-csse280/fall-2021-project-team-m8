@@ -358,7 +358,7 @@ rhit.WorkspacePageController = class {
 		  Adding listeners to Workspace Page Buttons
 		*/
 		this.createListeners();
-		this.setMemberList(members);
+		this.setMemberList(members, wkspId);
 		this.setFileList(files);
 		this.manager = new rhit.WorkspaceManager(uid, wkspId, members, files);
 		this.drawing = false;
@@ -409,6 +409,8 @@ rhit.WorkspacePageController = class {
 				});
 			});
 		});
+
+		// Upload new PDF
 		document.querySelector("#wkspPDF").addEventListener('click', ()=> {
 			this.manager.saveOldFile().then(() => {
 
@@ -417,14 +419,30 @@ rhit.WorkspacePageController = class {
 																	${rhit.wkspConstants.PDF_URL}
 																	${rhit.wkspConstants.PDF_HTML_END}`;
 		});
+
+		/**
+		 * ###############################
+		 * Menu Buttons
+		 * ###############################
+		 */
+
+		// Create new Workspace
 		document.querySelector("#submitCreateWksp").addEventListener('click', () => {
 			let wkspName = document.querySelector("#inputWkspName").value;
 			let wkspJoin = document.querySelector("#inputJoinCode").value;
 			this.manager.addWorkspace(wkspName, wkspJoin);
 		})
+
+		// Join a workspace
 		document.querySelector("#submitJoinWksp").addEventListener('click', () => {
 			let joinCode = document.querySelector("#inputJoinCode2").value;
 			this.manager.joinWorkspace(joinCode);
+		})
+
+		// Invite to workspace
+		document.querySelector("#submitInviteToWksp").addEventListener('click', () => {
+			let uid = document.querySelector("#inputUid").value;
+			this.manager.inviteUser(uid);
 		})
 	}
 
@@ -464,7 +482,13 @@ rhit.WorkspacePageController = class {
 		document.querySelector("#filesList").innerHTML = fileString;
 	}
 
-	setMemberList(members) {
+	async setMemberList(members, wkspId) {
+		let wkspName;
+		await firebase.firestore().collection(rhit.FB_COLLECTIONS.WKSP).doc(wkspId).get()
+		.then(doc => {
+			wkspName = doc.get("name")
+		})
+		document.querySelector("#wkspHeader").innerHTML = wkspName
 		let memberString = "";
 		for (let i=0; i<members.length; i++) {
 			memberString += `<div class="wksp-list-item">${members[i]}</div>`
@@ -676,6 +700,24 @@ rhit.WorkspaceManager = class {
 		})
 		window.location.href = `/workspace.html?id=${wkspId}`
 
+	}
+
+	async inviteUser(uid) {
+		let wkspName = await firebase.firestore().collection(rhit.FB_COLLECTIONS.WKSP).doc(this._wkspId).get()
+		.then(doc => doc.get("name"));
+		let wksp = `wksp-${wkspName}`
+		let userId;
+		await firebase.firestore().collection(rhit.FB_COLLECTIONS.USERS).where('uid', '==', uid).get()
+		.then(querySnapshot => {
+			querySnapshot.forEach(doc => {
+				userId = doc.id
+			})
+		})
+		if (userId) {
+			firebase.firestore().collection(rhit.FB_COLLECTIONS.USERS).doc(userId).update({
+				[wksp]:this._wkspId
+			})
+		} else alert("Invalid user")
 	}
 
 }

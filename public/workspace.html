@@ -17,7 +17,7 @@
         <button id="wkspDrawerHomeButton">Home</button>
         <button id="wkspDrawerCreate" data-toggle="modal" data-target="#createWorkspace">Create</button>
         <button id="wkspDrawerJoin" data-toggle="modal" data-target="#joinWorkspace">Join</button>
-        <button id="wkspDrawerInvite">Invite</button>
+        <button id="wkspDrawerInvite" data-toggle="modal" data-target="#inviteToWorkspace">Invite</button>
       </div>
     </div>
     <main class="bmd-layout-content">
@@ -35,7 +35,7 @@
       <div id="workspacePage" class="container page-container">
         <div id="wkspContent">
           <nav id="sideBar" class="nav flex-column">
-            <button id="wkspInvite" type="button" class="btn btn-primary btn-outline-primary wksp-button">
+            <button id="wkspInvite" type="button" class="btn btn-primary btn-outline-primary wksp-button" data-toggle="modal" data-target="#inviteToWorkspace">
               Invite
             </button> 
             <button id="wkspText" type="button" class="btn btn-primary btn-outline-primary wksp-button" data-toggle="modal" data-target="#createText">
@@ -60,7 +60,7 @@
           <div class="wksp-settings">
             <div id="wkspSettingsContent">
     
-              <div class="wksp-header">My Workspace</div>
+              <div class="wksp-header" id="wkspHeader"></div>
               <hr class="wksp-line">
               <div id="wkspMembers">
                 <div class="wksp-subhead">Members</div>
@@ -157,6 +157,35 @@ aria-hidden="true"
           CANCEL
         </button>
         <button id="submitJoinWksp" type="button" class="btn btn-primary" data-dismiss="modal">Join</button>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <!-- Modal -->
+  <div
+  class="modal fade"
+  id="inviteToWorkspace"
+  tabindex="-1"
+  aria-labelledby="Invite to workspace"
+  aria-hidden="true"
+  >
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Invite to Workspace</h5>
+      </div>
+      <div class="modal-body">
+        <div class="form-group bmd-form-group">
+          <label for="inputUid" class="bmd-label-floating">User to invite</label>
+          <input type="text" class="form-control" id="inputUid">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">
+          CANCEL
+        </button>
+        <button id="submitInviteToWksp" type="button" class="btn btn-primary" data-dismiss="modal">Invite</button>
       </div>
     </div>
   </div>
