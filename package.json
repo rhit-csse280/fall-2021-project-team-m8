@@ -1,5 +1,5 @@
 {
   "dependencies": {
-    "pdf-lib": "^1.17.0"
+    "pdf-lib": "^1.17.1"
   }
 }

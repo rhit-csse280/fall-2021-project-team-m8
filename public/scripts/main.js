@@ -1,4 +1,4 @@
-
+// import {PDFDocument} from '../pdf-lib';
 
 /** namespace. */
 var rhit = rhit || {};
@@ -42,9 +42,9 @@ rhit.FB_FILES = {
 }
 
 rhit.FILE_TYPES = {
-	TEXT: 'text',
+	TEXT: 'txt',
 	PDF:'pdf',
-	CANVAS:'canvas'
+	CANVAS:'cnv'
 }
 
 rhit.homePageManager;
@@ -548,7 +548,7 @@ rhit.WorkspaceManager = class {
 		this._unsubscribe;
 		this._filesRef = firebase.firestore().collection(rhit.FB_COLLECTIONS.FILES);
 		this._wkspRef = firebase.firestore().collection(rhit.FB_COLLECTIONS.WKSP).doc(wkspId);
-		this._storageRef = firebase.storage().ref();
+		this._storageRef = firebase.storage().ref().child(`/${wkspId}`);
 		console.log(`  WorkspaceManager: Constructed with id ${this._wkspId}`);
 		
 	}
@@ -572,6 +572,26 @@ rhit.WorkspaceManager = class {
 
 	async loadFile(type, name) {
 
+		// Get file from storage
+		let fr = new FileReader();
+		fr.onloadend();
+
+		this._storageRef.child(`${name}.${type}`).getDownloadURL().then(url => {
+			switch (type) {
+				case 'txt':
+					fr.readAsText(url)
+					break;
+				case 'pdf':
+					
+					let buff = await fetch(url).then(res => res.arrayBuffer());
+					fr.readAsArrayBuffer(buff);
+					break;
+				case 'cnv':
+					break;
+			}
+		});
+
+		
 	}
 
 	async createFile(type, name) {
@@ -619,7 +639,7 @@ rhit.WorkspaceManager = class {
 
 			let file;
 			switch (this._fileInfo.type) {
-				case ('text'):
+				case ('txt'):
 					let text = document.querySelector('#textFile').value;
 					if (!text || text == '') {
 						console.log('  SaveOldFile: There is no text to save');
@@ -627,9 +647,10 @@ rhit.WorkspaceManager = class {
 					}
 					file = this.createFileObj(text, this._fileInfo.name);
 					break;
-				case ('canvas'):
+				case ('cnv'):
 					break;
 				case ('pdf'):
+
 					break;
 			}
 	
@@ -720,6 +741,16 @@ rhit.WorkspaceManager = class {
 		} else alert("Invalid user")
 	}
 
+	// /**
+	//  * 
+	//  * @param {string} link 
+	//  * @returns {PDFDocument}
+	//  */
+	// async loadPdf(link) {
+	// 	let pdfDoc = await PDFDocument.load(link);
+	// 	return pdfDoc;
+	// }
+
 }
 
 /**
@@ -753,11 +784,21 @@ rhit.getWkspFiles = async function(wkspId) {
 		wkspName = doc.get("name");
 	});
 	// Next, use wkspId to query files to find which ones belong to wksp
+	/**
+	 * @typedef {Object} WorkspaceFile
+	 * @property {string} name
+	 * @property {string} ref
+	 * @property {string} type
+	 */
+	const WorkspaceFile = (name, ref, type) => {
+		return {name: name, ref: ref, type: type};
+	}
+	/**@type {WorkspaceFile} */
 	let files = [];
 	firebase.firestore().collection(rhit.wkspConstants.FILES_REF_KEY).where("workspace", "==", `${wkspId}`).get()
 		.then(querySnapshot => {
 			querySnapshot.docs.forEach(doc => {
-				files.push({name: doc.get('name'), ref: doc.get('ref'), type: doc.get('type')});
+				files.push(new WorkspaceFile(doc.get('name'), doc.get('ref'), doc.get('type'))); /* {name: doc.get('name'), ref: doc.get('ref'), type: doc.get('type')} */
 			});
 		});
 	
