@@ -22,7 +22,7 @@ body {
 
 
 .navbar button, .navbar a {
-    font-size: 1.5em;
+    font-size: 1.4em;
     text-transform: none;
     text-decoration: bold;
 }
@@ -342,11 +342,35 @@ body {
 }
 
 .wksp-settings-btn {
+    display: flex;
+    flex-direction: column;
     width: 75px;
     height: 75px;
     background-color: #666666;
     margin: 10px;
-    
+    justify-content: center;
+    align-items: center;
+}
+
+.wksp-setting {
+    font-size: 50px;
+}
+
+.brush-small {
+    font-size: 15px;
+}
+
+.brush-medium {
+    font-size: 25px;
+}
+
+.brush-large {
+    font-size: 40px;
+}
+
+.brush-selected {
+    background-color: #888888;
+    border: 3px solid black;
 }
 
 #wkspMembers {
