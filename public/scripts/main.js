@@ -363,6 +363,7 @@ rhit.WorkspacePageController = class {
 		this.updateView();
 		this.manager = new rhit.WorkspaceManager(uid, wkspId, members, files);
 		this.drawing = false;
+		this.beginListening(this.updateView);
 
 	}
 
@@ -540,6 +541,14 @@ rhit.WorkspacePageController = class {
 		context.fill();
 	}
 
+	async beginListening(listener) {
+		this._filesRef.onSnapshot(querySnapshot => {
+			// Update file/member list
+			// Update view
+			listener();
+		});
+	}
+
 	async updateView() {
 		this.setMemberList(await rhit.getWkspMembers(this._wkspId), this._wkspId);
 		this.setFileList(await rhit.getWkspFiles(this._wkspId));
@@ -594,21 +603,28 @@ rhit.WorkspaceManager = class {
 
 		// Get file from storage
 		let fr = new FileReader();
-		fr.onloadend();
+
+		fr.onload = () => {
+			let result = fr.result
+			if (typeof result === 'string' || result instanceof String) {
+				this._fileInfo = this._makeFileInfo(name, type, )
+			}
+		};
 
 		let url = await this.getFileURL(name);
+		let fileBlob = await fetch(url);
 
 		switch (type) {
 			case 'txt':
-				fr.readAsText(url)
+				fr.readAsText(fileBlob.text())
 				break;
 			case 'pdf':
-				fetch(url).then((res) =>  {
-					buff = res.arrayBuffer()
-					fr.readAsArrayBuffer(buff);
-				});
+				let buff = await fileBlob.arrayBuffer()
+				fr.readAsArrayBuffer(buff);
 				break;
 			case 'cnv':
+				// Draw old image on new canvas ( must be after setting canvas)
+				fr;
 				break;
 		}
 
@@ -629,7 +645,7 @@ rhit.WorkspaceManager = class {
 				id = docRef.id;
 			});
 
-			this._fileInfo = this._makeFileInfo(name, type, id, `${this._wkspId}/${name}`);
+			this._fileInfo = this._makeFileInfo(name, type, id, `${name}`);
 			resolve();
 		});
 			
@@ -690,6 +706,12 @@ rhit.WorkspaceManager = class {
 		let fileRef = await this._storageRef.child(path);
 		let url = await fileRef.getDownloadURL();
 		return url;
+	}
+
+	async changeFile(type, name) {
+		await this.saveOldFile();
+		// Change html
+		await this.loadFile(type, name);
 	}
 
 	beginListening(changeListener) {
