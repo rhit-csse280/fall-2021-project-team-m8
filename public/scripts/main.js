@@ -358,7 +358,7 @@ rhit.WorkspacePageController = class {
 		*/
 		this._wkspId = wkspId;
 		this._color = document.querySelector("#inputColor").value;
-		console.log(this._color);
+		this._brushSize = 5;
 		this.createListeners();
 		this.updateView();
 		this.manager = new rhit.WorkspaceManager(uid, wkspId, members, files);
@@ -451,9 +451,45 @@ rhit.WorkspacePageController = class {
 			this.manager.inviteUser(uid);
 		})
 
+		/**
+		 * ###############################
+		 * Canvas Setting Buttons
+		 * ###############################
+		 */
+
 		// Change canvas color
 		document.querySelector("#submitColor").addEventListener('click', () => {
 			this._color = document.querySelector("#inputColor").value;
+			document.querySelector("#color").style.color = this._color;
+		})
+
+		document.querySelector("#brushSmall").addEventListener('click', () => {
+			this._brushSize = 5;
+			for (let button of document.querySelectorAll(".brush")) {
+				button.classList.remove("brush-selected")
+			}
+			document.querySelector("#brushSmall").classList.add("brush-selected");
+		});
+
+		document.querySelector("#brushMedium").addEventListener('click', () => {
+			this._brushSize = 10;
+			for (let button of document.querySelectorAll(".brush")) {
+				button.classList.remove("brush-selected")
+			}
+			document.querySelector("#brushMedium").classList.add("brush-selected");
+		});
+
+		document.querySelector("#brushLarge").addEventListener('click', () => {
+			this._brushSize = 15;
+			for (let button of document.querySelectorAll(".brush")) {
+				button.classList.remove("brush-selected")
+			}
+			document.querySelector("#brushLarge").classList.add("brush-selected");
+		});
+
+		document.querySelector("#erase").addEventListener('click', () => {
+			this._color = '#FFFFFF';
+			document.querySelector("#color").style.color = this._color;
 		})
 	}
 
@@ -537,7 +573,7 @@ rhit.WorkspacePageController = class {
 		context.fillStyle = this._color;
 	
 		context.beginPath();
-		context.arc(x, y, 5, 0, Math.PI * 2, true);
+		context.arc(x, y, this._brushSize, 0, Math.PI * 2, true);
 		context.fill();
 	}
 
@@ -545,6 +581,7 @@ rhit.WorkspacePageController = class {
 		this._filesRef.onSnapshot(querySnapshot => {
 			// Update file/member list
 			// Update view
+			this.updateView();
 			listener();
 		});
 	}
