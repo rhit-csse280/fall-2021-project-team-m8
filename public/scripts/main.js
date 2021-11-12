@@ -291,7 +291,6 @@ rhit.HomePageManager = class {
  */
  rhit.buildHomePage = async function(uid) {
 	// Get a user reference to loop through for workspaces then get list of workspaces & convert to display names
-	console.log(rhit.fbAuthManager.userId);
 	let userData = [];
 	await firebase.firestore().collection(this.wkspConstants.USERS_REF_KEY).where(`uid`, `==`, `${uid}`).get()
 	.then((querySnapshot) => {
@@ -358,6 +357,8 @@ rhit.WorkspacePageController = class {
 		  Adding listeners to Workspace Page Buttons
 		*/
 		this._wkspId = wkspId;
+		this._color = document.querySelector("#inputColor").value;
+		console.log(this._color);
 		this.createListeners();
 		this.updateView();
 		this.manager = new rhit.WorkspaceManager(uid, wkspId, members, files);
@@ -448,6 +449,11 @@ rhit.WorkspacePageController = class {
 			let uid = document.querySelector("#inputUid").value;
 			this.manager.inviteUser(uid);
 		})
+
+		// Change canvas color
+		document.querySelector("#submitColor").addEventListener('click', () => {
+			this._color = document.querySelector("#inputColor").value;
+		})
 	}
 
 	setCanvasHTML() {
@@ -478,12 +484,19 @@ rhit.WorkspacePageController = class {
 	 * finishing
 	 */
 	setFileList(files) {
-		let fileString = "";
+		const newList = htmlToElement('<div id="filesList"></div>');
 		for (let i=0; i<files.length; i++) {
-			fileString += `<div class="wksp-list-item">${files[i].name}.${files[i].type}</div>`
+			const element = htmlToElement(`<div class="wksp-list-item">${files[i].name}.${files[i].type}</div>`);
+			element.addEventListener('click', () => {
+				this.manager.loadFile(files[i].type, files[i].name);
+			})
+			newList.appendChild(element)
 		}
 
-		document.querySelector("#filesList").innerHTML = fileString;
+		const oldList = document.querySelector("#filesList");
+		oldList.removeAttribute("id");
+		oldList.hidden = true;
+		oldList.parentElement.appendChild(newList);
 	}
 
 	async setMemberList(members, wkspId) {
@@ -520,7 +533,7 @@ rhit.WorkspacePageController = class {
 		return;
 		}
 		let context = canvas.getContext('2d');
-		context.fillStyle = 'rgb(0, 0, 0)';
+		context.fillStyle = this._color;
 	
 		context.beginPath();
 		context.arc(x, y, 5, 0, Math.PI * 2, true);

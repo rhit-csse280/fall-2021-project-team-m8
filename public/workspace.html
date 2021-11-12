@@ -74,7 +74,7 @@
               <hr class="wksp-line">
               <div class="wksp-subhead">Workspace Options</div>
               <div class="wksp-btn-row">
-                <div class="wksp-settings-btn"></div>
+                <div class="wksp-settings-btn" data-toggle="modal" data-target="#selectColor"><i class="material-icons">palette</i></div>
                 <div class="wksp-settings-btn"></div>
                 <div class="wksp-settings-btn"></div>
               </div>
@@ -272,6 +272,32 @@ aria-hidden="true"
           CANCEL
         </button>
         <button id="submitCreateCanvas" type="button" class="btn btn-primary" data-dismiss="modal">Create</button>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <!-- Modal -->
+  <div
+  class="modal fade"
+  id="selectColor"
+  tabindex="-1"
+  aria-labelledby="Select color"
+  aria-hidden="true"
+  >
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Select Color</h5>
+      </div>
+      <div class="modal-body">
+        <div class="form-group bmd-form-group">
+          <label for="inputColor" class="bmd-label-floating">Select a color</label>
+          <input type="color" class="form-control" id="inputColor">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="submitColor" type="button" class="btn btn-primary" data-dismiss="modal">Select</button>
       </div>
     </div>
   </div>
