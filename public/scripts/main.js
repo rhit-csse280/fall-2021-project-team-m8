@@ -552,6 +552,8 @@ rhit.WorkspaceManager = class {
 	 *  
 	 * @param {string} uid
 	 * @param {string} wkspId
+	 * @param {string[]} members
+	 * @param {WorkspaceFile} fileNames
 	 */
 	constructor(uid, wkspId, members=[], fileNames=[]) {
 
@@ -566,7 +568,7 @@ rhit.WorkspaceManager = class {
 		this._unsubscribe;
 		this._filesRef = firebase.firestore().collection(rhit.FB_COLLECTIONS.FILES);
 		this._wkspRef = firebase.firestore().collection(rhit.FB_COLLECTIONS.WKSP).doc(wkspId);
-		this._storageRef = firebase.storage().ref().child(`/${wkspId}`);
+		this._storageRef = firebase.storage().ref().child(`${wkspId}`);
 		console.log(`  WorkspaceManager: Constructed with id ${this._wkspId}`);
 		
 	}
@@ -594,21 +596,22 @@ rhit.WorkspaceManager = class {
 		let fr = new FileReader();
 		fr.onloadend();
 
-		this._storageRef.child(`${name}.${type}`).getDownloadURL().then(url => {
-			switch (type) {
-				case 'txt':
-					fr.readAsText(url)
-					break;
-				case 'pdf':
-					fetch(url).then((res) =>  {
-						buff = res.arrayBuffer()
-						fr.readAsArrayBuffer(buff);
-					});
-					break;
-				case 'cnv':
-					break;
-			}
-		});
+		let url = await this.getFileURL(name);
+
+		switch (type) {
+			case 'txt':
+				fr.readAsText(url)
+				break;
+			case 'pdf':
+				fetch(url).then((res) =>  {
+					buff = res.arrayBuffer()
+					fr.readAsArrayBuffer(buff);
+				});
+				break;
+			case 'cnv':
+				break;
+		}
+
 
 		
 	}
@@ -770,6 +773,23 @@ rhit.WorkspaceManager = class {
 	// 	return pdfDoc;
 	// }
 
+	/**
+	 * @typedef {Object} WorkspaceFile
+	 * @property {string} name
+	 * @property {string} ref
+	 * @property {string} type
+	 */
+	/**
+	 * 
+	 * @param {string} name 
+	 * @param {string} ref 
+	 * @param {string} type 
+	 * @returns {WorkspaceFile}
+	 */
+	static WorkspaceFile = (name, ref, type) => {
+		return {name: name, ref: ref, type: type};
+	}
+
 }
 
 /**
@@ -797,27 +817,13 @@ rhit.WorkspaceManager = class {
 }
 
 rhit.getWkspFiles = async function(wkspId) {
-	let wkspName;
-	await firebase.firestore().collection(rhit.FB_COLLECTIONS.WKSP).doc(wkspId).get()
-	.then((doc) => {	
-		wkspName = doc.get("name");
-	});
-	// Next, use wkspId to query files to find which ones belong to wksp
-	/**
-	 * @typedef {Object} WorkspaceFile
-	 * @property {string} name
-	 * @property {string} ref
-	 * @property {string} type
-	 */
-	const workspaceFile = (name, ref, type) => {
-		return {name: name, ref: ref, type: type};
-	}
-	/**@type {WorkspaceFile} */
+	
+	/**@type {WorkspaceFile[]} */
 	let files = [];
 	await firebase.firestore().collection(rhit.FB_COLLECTIONS.FILES).where("workspace", "==", `${wkspId}`).get()
 		.then(querySnapshot => {
 			querySnapshot.docs.forEach(doc => {
-				let file = workspaceFile(doc.get("name"), doc.get("ref"), doc.get("type"));
+				let file = rhit.WorkspaceManager.WorkspaceFile(doc.get("name"), doc.get("ref"), doc.get("type"));
 				files.push(file); /* {name: doc.get('name'), ref: doc.get('ref'), type: doc.get('type')} */
 			});
 		});
