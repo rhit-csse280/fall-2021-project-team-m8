@@ -184,7 +184,7 @@ rhit.initializePage = async function(options) {
 		const wkspId = urlParams.get("id");
 		console.log(`  InitializePage: Loading workspace ${wkspId}`);
 		let wkspMembers = await rhit.getWkspMembers(wkspId);
-		let wkspFiles = await rhit.getWkspMembers(wkspId);
+		let wkspFiles = await rhit.getWkspFiles(wkspId);
 		new rhit.WorkspacePageController(options.uid, wkspId, wkspMembers, wkspFiles);
 	}
 
@@ -357,9 +357,9 @@ rhit.WorkspacePageController = class {
 		/*
 		  Adding listeners to Workspace Page Buttons
 		*/
+		this._wkspId = wkspId;
 		this.createListeners();
-		this.setMemberList(members, wkspId);
-		this.setFileList(files);
+		this.updateView();
 		this.manager = new rhit.WorkspaceManager(uid, wkspId, members, files);
 		this.drawing = false;
 
@@ -389,10 +389,12 @@ rhit.WorkspacePageController = class {
 		// Create new text
 		document.querySelector("#submitCreateTxt").addEventListener('click', ()=> {
 			this.manager.saveOldFile().then(() => {
+				console.log("here");
 				document.querySelector(".wksp-blank-page").innerHTML = rhit.wkspConstants.TEXTAREA_HTML;
 				let name = document.querySelector('#inputTxtName').value;
 				// Create a new text file
 				this.manager.createFile(rhit.FILE_TYPES.TEXT, name);
+				this.updateView();
 			});
 			
 		});
@@ -408,6 +410,7 @@ rhit.WorkspacePageController = class {
 
 				});
 			});
+			this.updateView();
 		});
 
 		// Upload new PDF
@@ -418,6 +421,7 @@ rhit.WorkspacePageController = class {
 			document.querySelector(".wksp-blank-page").innerHTML = `${rhit.wkspConstants.PDF_HTML_START}
 																	${rhit.wkspConstants.PDF_URL}
 																	${rhit.wkspConstants.PDF_HTML_END}`;
+			this.updateView();
 		});
 
 		/**
@@ -476,7 +480,7 @@ rhit.WorkspacePageController = class {
 	setFileList(files) {
 		let fileString = "";
 		for (let i=0; i<files.length; i++) {
-			fileString += `<div class="wksp-list-item">${files[i]}</div>`
+			fileString += `<div class="wksp-list-item">${files[i].name}.${files[i].type}</div>`
 		}
 
 		document.querySelector("#filesList").innerHTML = fileString;
@@ -523,8 +527,9 @@ rhit.WorkspacePageController = class {
 		context.fill();
 	}
 
-	updateView() {
-
+	async updateView() {
+		this.setMemberList(await rhit.getWkspMembers(this._wkspId), this._wkspId);
+		this.setFileList(await rhit.getWkspFiles(this._wkspId));
 	}
 }
 
@@ -582,9 +587,10 @@ rhit.WorkspaceManager = class {
 					fr.readAsText(url)
 					break;
 				case 'pdf':
-					
-					let buff = await fetch(url).then(res => res.arrayBuffer());
-					fr.readAsArrayBuffer(buff);
+					fetch(url).then((res) =>  {
+						buff = res.arrayBuffer()
+						fr.readAsArrayBuffer(buff);
+					});
 					break;
 				case 'cnv':
 					break;
@@ -790,18 +796,18 @@ rhit.getWkspFiles = async function(wkspId) {
 	 * @property {string} ref
 	 * @property {string} type
 	 */
-	const WorkspaceFile = (name, ref, type) => {
+	const workspaceFile = (name, ref, type) => {
 		return {name: name, ref: ref, type: type};
 	}
 	/**@type {WorkspaceFile} */
 	let files = [];
-	firebase.firestore().collection(rhit.wkspConstants.FILES_REF_KEY).where("workspace", "==", `${wkspId}`).get()
+	await firebase.firestore().collection(rhit.FB_COLLECTIONS.FILES).where("workspace", "==", `${wkspId}`).get()
 		.then(querySnapshot => {
 			querySnapshot.docs.forEach(doc => {
-				files.push(new WorkspaceFile(doc.get('name'), doc.get('ref'), doc.get('type'))); /* {name: doc.get('name'), ref: doc.get('ref'), type: doc.get('type')} */
+				let file = workspaceFile(doc.get("name"), doc.get("ref"), doc.get("type"));
+				files.push(file); /* {name: doc.get('name'), ref: doc.get('ref'), type: doc.get('type')} */
 			});
 		});
-	
 	return files;
 	
 }
