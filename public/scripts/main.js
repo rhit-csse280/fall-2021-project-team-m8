@@ -12,7 +12,7 @@ rhit.wkspConstants = {
 	PDF_HTML_START: `<embed type="application/pdf" src="`,
 	PDF_HTML_END: `" height="100%" width="100%">`,
 	PDF_URL: `https://firebasestorage.googleapis.com/v0/b/pickens-thorp-squadm8-csse280.appspot.com/o/sat_score.pdf?alt=media&token=8eeb6335-d37c-431e-a57b-11cc8646386d`,
-	CANVAS_HTML: `<canvas id="wkspCanvas" height="100%" width="100%"><div>This browser does not support our canvas feature :( Most modern browsers (Chrome, Edge, Firefox) do support this.</div></canvas>`,
+	CANVAS_HTML: `<canvas id="myCanvas" height="100%" width="100%"><div>This browser does not support our canvas feature :( Most modern browsers (Chrome, Edge, Firefox) do support this.</div></canvas>`,
 	TEXTAREA_HTML: "<textarea id=\"textFile\"></textarea>"
 
 }
@@ -44,8 +44,9 @@ rhit.FILE_TYPES = {
 
 rhit.HTML_ELEMENTS = {
     TEXT_ID: '#textFile',
-	CANVAS_ID: '#wkspCanvas',
-	PDF_ID: '#pdfEmbed'
+	CANVAS_ID: '#myCanvas',
+	PDF_ID: '#pdfEmbed',
+	PDF_UPLOAD_ID: '#pdfFile'
 }
 
 rhit.homePageManager;
@@ -403,6 +404,16 @@ rhit.WorkspacePageController = class {
 
 		// Create new text
 		document.querySelector("#submitCreateTxt").addEventListener('click', ()=> {
+			if (!this._fileInfo) {
+				console.log('  No file to save');
+				document.querySelector(".wksp-blank-page").innerHTML = rhit.wkspConstants.TEXTAREA_HTML;
+				let name = document.querySelector('#inputTxtName').value;
+				// Create a new text file
+				this.manager.createFile(rhit.FILE_TYPES.TEXT, name);
+				this.updateView();
+				return;
+			}
+
 			this.manager.saveOldFile().then(() => {
 				console.log("here");
 				document.querySelector(".wksp-blank-page").innerHTML = rhit.wkspConstants.TEXTAREA_HTML;
@@ -715,26 +726,27 @@ rhit.WorkspaceManager = class {
 		let url = await this.getFileURL(name);
 		console.log(`  loadFile: Url is ${url}`);
 		/**@type {Blob} */
-		let fileBlob; // = await fetch(url);
+		let fileBlob = await fetch(url);
 
-		let xhr = new XMLHttpRequest();
-		xhr.responseType = 'blob';
-		xhr.onload = (event) => {
-			fileBlob = xhr.response;
-		};
-		xhr.open('GET', url);
-		xhr.send();
+		// let xhr = new XMLHttpRequest();
+		// xhr.responseType = 'blob';
+		// xhr.onload = (event) => {
+		// 	fileBlob = xhr.response;
+		// };
+		// xhr.open('GET', url);
+		// xhr.send();
 
 		switch (type) {
 			case 'txt':
-				let fr = new FileReader();
-				fr.onload = () => {
-					let result = fr.result
-					if (type == rhit.FILE_TYPES.TEXT) {
-						document.querySelector(rhit.HTML_ELEMENTS.TEXT_ID).value = result;
-					}
-				};
-				fr.readAsText(await fileBlob.text())
+				// let fr = new FileReader();
+				// fr.onload = () => {
+				// 	let result = fr.result
+				// 	console.log(`  Loading text...\n  Result from FileReader: ${result}`);
+				// 	document.querySelector(rhit.HTML_ELEMENTS.TEXT_ID).value = result;
+				// };
+				let textOne = await fileBlob.text();
+				console.log(`  Loading text...\n  Result from Blob.text(): ${textOne}`);
+				document.querySelector(rhit.HTML_ELEMENTS.TEXT_ID).value = textOne;
 				break;
 			case 'pdf':
 				document.querySelector(rhit.HTML_ELEMENTS.PDF_ID).setAttribute('src', url)
@@ -775,7 +787,8 @@ rhit.WorkspaceManager = class {
 		return new Promise((resolve, reject)=>{
 			if (this._fileInfo == null) resolve(); // For loading first file
 
-			let file;
+
+			let path = this._fileInfo.ref;
 			switch (this._fileInfo.type) {
 				case ('txt'):
 					let text = document.querySelector('#textFile').value;
@@ -783,7 +796,13 @@ rhit.WorkspaceManager = class {
 						console.log('  SaveOldFile: There is no text to save');
 						return;
 					}
-					file = this.createFileObj(text, this._fileInfo.name);
+					let saveFile = this.createFileObj(text, this._fileInfo.name);
+					this._storageRef.child(path).put(saveFile).then(snapshot => {
+						console.log(`  SaveFile: File saved at ${path}`);
+					}).catch(err => {
+						console.log(`  SaveFile: Error saving file`);
+						console.log(err);
+					});
 					break;
 				case ('cnv'):
 					/** @type {HTMLCanvasElement} */
@@ -793,27 +812,28 @@ rhit.WorkspaceManager = class {
 						return;
 					}
 					canvas.toBlob(blob => {
-						file = blob;
+
+						if (!blob) {
+							reject(new Error('Invalid Canvas Blob'));
+						}
 						console.log(`  SaveFile:\n    Blob: ` + blob);
-						console.log(`  SaveFile:\n    File: ` + file);
-					})
+						this._storageRef.child(path).put(blob).then(snapshot => {
+							console.log(`  SaveFile: File saved at ${path}`);
+						}).catch(err => {
+							console.log(`  SaveFile: Error saving file`);
+							console.log(err);
+						});
+					});
 					break;
 				case ('pdf'):
 					// Nothing... URL is already saved in file ref
 					break;
 			}
-	
-			console.log(`  SaveFile: Got past switch statement`)
-			let path = this._fileInfo.ref;
-			this._storageRef.child(path).put(file).then(snapshot => {
-				console.log(`  SaveFile: File saved at ${path}`);
-			}).catch(err => {
-				console.log(`  SaveFile: Error saving file`);
-				console.log(err);
-			});
 			resolve();
-		})
+		});
 	}
+
+	
   
 	// Gets a new document
 	async getFileURL(fileName) {
