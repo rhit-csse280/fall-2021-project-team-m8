@@ -526,8 +526,11 @@ rhit.WorkspacePageController = class {
 		// Change canvas color
 		document.querySelector("#submitColor").addEventListener('click', () => {
 			this._color = document.querySelector("#inputColor").value;
+			for (let button of document.querySelectorAll(".brush")) {
+				button.style.color = this._color;
+			}
 			document.querySelector("#color").style.color = this._color;
-			document.querySelector("#colorMobile").style.color = this._color;
+			if ((document.querySelector("#colorMobile"))) document.querySelector("#colorMobile").style.color = this._color;
 		})
 
 		document.querySelector("#brushSmall").addEventListener('click', () => {
@@ -536,7 +539,7 @@ rhit.WorkspacePageController = class {
 				button.classList.remove("brush-selected")
 			}
 			document.querySelector("#brushSmall").classList.add("brush-selected");
-			document.querySelector("#brushSmallMobile").classList.add("brush-selected");
+			if (document.querySelector("#brushSmallMobile")) document.querySelector("#brushSmallMobile").classList.add("brush-selected");
 		});
 
 		document.querySelector("#brushMedium").addEventListener('click', () => {
@@ -545,7 +548,7 @@ rhit.WorkspacePageController = class {
 				button.classList.remove("brush-selected")
 			}
 			document.querySelector("#brushMedium").classList.add("brush-selected");
-			document.querySelector("#brushMediumMobile").classList.add("brush-selected");
+			if (document.querySelector("#brushMediumMobile")) document.querySelector("#brushMediumMobile").classList.add("brush-selected");
 		});
 
 		document.querySelector("#brushLarge").addEventListener('click', () => {
@@ -554,13 +557,16 @@ rhit.WorkspacePageController = class {
 				button.classList.remove("brush-selected")
 			}
 			document.querySelector("#brushLarge").classList.add("brush-selected");
-			document.querySelector("#brushMobile").classList.add("brush-selected");
+			if (document.querySelector("#brushMediumMobile")) document.querySelector("#brushLargeMobile").classList.add("brush-selected");
 		});
 
 		document.querySelector("#erase").addEventListener('click', () => {
 			this._color = '#FFFFFF';
+			for (let button of document.querySelectorAll(".brush")) {
+				button.style.color = this._color;
+			}
 			document.querySelector("#color").style.color = this._color;
-			document.querySelector("#colorMobile").style.color = this._color;
+			if (document.querySelector("#colorMobile")) document.querySelector("#colorMobile").style.color = this._color;
 		})
 
 		/**
@@ -598,6 +604,9 @@ rhit.WorkspacePageController = class {
 
 		document.querySelector("#eraseMobile").addEventListener('click', () => {
 			this._color = '#FFFFFF';
+			for (let button of document.querySelectorAll(".brush")) {
+				button.style.color = this._color;
+			}
 			document.querySelector("#color").style.color = this._color;
 			document.querySelector("#colorMobile").style.color = this._color;
 		})
