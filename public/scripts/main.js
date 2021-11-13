@@ -117,17 +117,20 @@ rhit.FbAuthManager = class {
 	}
 
 	async beginListening(changeListener) {
+		console.log("hi");
 		firebase.auth().onAuthStateChanged((user) => {
-			this._user = user;
-			firebase.firestore().collection(rhit.FB_COLLECTIONS.USERS).where(`uid`, `==`, `${user.uid}`).get()
-			.then((querySnapshot) => {
-				if (querySnapshot.docs.length == 0) {
-					rhit.newUser(uid);
-				}
-				querySnapshot.forEach((doc) => {
-					this.userId = doc.id;
-				})
-			});
+			if (user) {
+				this._user = user;
+				firebase.firestore().collection(rhit.FB_COLLECTIONS.USERS).where(`uid`, `==`, `${user.uid}`).get()
+				.then((querySnapshot) => {
+					if (querySnapshot.docs.length == 0) {
+						rhit.newUser(user.uid);
+					}
+					querySnapshot.forEach((doc) => {
+						this.userId = doc.id;
+					})
+				});
+			}
 			changeListener();
 		})
 	}
@@ -155,6 +158,7 @@ rhit.FbAuthManager = class {
 		firebase.auth().signOut().catch((error) => {
 			console.log("Sign out error");
 		})
+		window.location.href = "/"
 	}
 
 	get isSignedIn() {
@@ -307,7 +311,6 @@ rhit.HomePageManager = class {
 	await firebase.firestore().collection(rhit.FB_COLLECTIONS.USERS).where(`uid`, `==`, `${uid}`).get()
 	.then((querySnapshot) => {
 		if (querySnapshot.docs.length == 0) {
-			rhit.newUser(uid);
 		}
 		querySnapshot.forEach((doc) => {
 			rhit.userId = doc.id;
@@ -336,7 +339,7 @@ rhit.HomePageManager = class {
  * @param {string} uid 
  */
  rhit.newUser = async function(uid) {
-	let userRef = await firebase.firestore().collection(rhit.wkspConstants.USERS_REF_KEY);	
+	let userRef = await firebase.firestore().collection(rhit.FB_COLLECTIONS.USERS);	
 	userRef.add({
 		uid: `${uid}`,
 	}).then(doc => {
@@ -499,6 +502,7 @@ rhit.WorkspacePageController = class {
 		document.querySelector("#submitInviteToWksp").addEventListener('click', () => {
 			let uid = document.querySelector("#inputUid").value;
 			this.manager.inviteUser(uid);
+			this.updateView();
 		})
 
 		/**
@@ -889,7 +893,12 @@ rhit.WorkspaceManager = class {
 						}
 						this._storageRef.child(path).delete().then(() => {
 							this._storageRef.child(path).put(blob).then(snapshot => {
-
+							}).catch(err => {
+								console.log(err);
+							});
+						})
+						.catch(() => {
+							this._storageRef.child(path).put(blob).then(snapshot => {
 							}).catch(err => {
 								console.log(err);
 							});
@@ -1094,7 +1103,7 @@ rhit.main = async function () {
 	 */
 	rhit.fbAuthManager = new rhit.FbAuthManager();
 	rhit.fbAuthManager.beginListening(async function() {
-		await rhit.checkForRedirects();
+		rhit.checkForRedirects();
 		let options = {};
 		if (rhit.fbAuthManager.uid) {
 			options.uid = rhit.fbAuthManager.uid;
