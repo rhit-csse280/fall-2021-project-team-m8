@@ -464,15 +464,29 @@ rhit.WorkspacePageController = class {
 					console.log('No file or name was provided');
 					alert('Give me a fucking pdf and name');
 				}
-				this.manager.uploadPDF(newFile, newName);
-				document.querySelector(rhit.HTML_ELEMENTS.BLANK_WORKSPACE_PAGE).innerHTML = `${rhit.wkspConstants.PDF_HTML}`;
-				this.updateView();
+				this.manager.uploadPDF(newFile, newName).then(() => {
+					document.querySelector(rhit.HTML_ELEMENTS.BLANK_WORKSPACE_PAGE).innerHTML = `${rhit.wkspConstants.PDF_HTML}`;
+					this.manager.loadFile('pdf', newName);
+					this.manager.createFile('pdf', newName);
+					this.updateView();
+				});
+				
 				return;
 
 			}
 			this.manager.saveOldFile().then(() => {
-				document.querySelector(rhit.HTML_ELEMENTS.BLANK_WORKSPACE_PAGE).innerHTML = `${rhit.wkspConstants.PDF_HTML}`;
-				this.updateView();
+				let newFile = document.querySelector(rhit.HTML_ELEMENTS.PDF_UPLOAD_ID).files[0];
+				let newName = document.querySelector('#inputPdfName').value;
+				if (!newFile || !newName) {
+					console.log('No file or name was provided');
+					alert('Give me a fucking pdf and name');
+				}
+				this.manager.uploadPDF(newFile, newName).then(() => {
+					document.querySelector(rhit.HTML_ELEMENTS.BLANK_WORKSPACE_PAGE).innerHTML = `${rhit.wkspConstants.PDF_HTML}`;
+					this.manager.loadFile('pdf', newName);
+					this.manager.createFile('pdf', newName);
+					this.updateView();
+				});
 			});
 			
 		});
@@ -787,7 +801,7 @@ rhit.WorkspaceManager = class {
 	}
 
 	async uploadPDF(file, name) {
-		this._storageRef.child(name).put(file);
+		await this._storageRef.child(name).put(file);
 	}
 
 	async loadFile(type, name) {
