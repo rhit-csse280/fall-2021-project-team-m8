@@ -4,6 +4,7 @@
     "indexes": "firestore.indexes.json"
   },
   "hosting": {
+    "site": "squadm8-workspace",
     "public": "public",
     "ignore": [
       "firebase.json",

@@ -46,7 +46,8 @@ rhit.HTML_ELEMENTS = {
     TEXT_ID: '#textFile',
 	CANVAS_ID: '#myCanvas',
 	PDF_ID: '#pdfEmbed',
-	PDF_UPLOAD_ID: '#pdfFile'
+	PDF_UPLOAD_ID: '#pdfFile',
+	BLANK_WORKSPACE_PAGE: '.wksp-blank-page'
 }
 
 rhit.homePageManager;
@@ -67,14 +68,15 @@ function htmlToElement(html) {
 }
 
 // From https://stackoverflow.com/a/68497562
-function renderImage(canvas, blob) {
+// Slightly modified to use URL source instead of blob
+function renderImage(canvas, url) {
     const ctx = canvas.getContext('2d')
-    const img = new Image()
+    var img = new Image()
     img.onload = (event) => {
       URL.revokeObjectURL(event.target.src) // 👈 This is important. If you are not using the blob, you should release it if you don't want to reuse it. It's good for memory.
       ctx.drawImage(event.target, 0, 0)
     }
-    img.src = URL.createObjectURL(blob)
+    img.src = url;
 }
 
 /**
@@ -372,10 +374,10 @@ rhit.WorkspacePageController = class {
 		this._filesRef = firebase.firestore().collection(rhit.FB_COLLECTIONS.FILES);
 		this._wkspId = wkspId;
 		this._color = document.querySelector("#inputColor").value;
-		this._brushSize = 5;
-		this.createListeners();
+		this._brushSize = 5;		
 		this.updateView();
 		this.manager = new rhit.WorkspaceManager(uid, wkspId, members, files);
+		this.createListeners();
 		this.drawing = false;
 		this.beginListening(this.updateView);
 
@@ -404,9 +406,9 @@ rhit.WorkspacePageController = class {
 
 		// Create new text
 		document.querySelector("#submitCreateTxt").addEventListener('click', ()=> {
-			if (!this._fileInfo) {
+			if (this.manager._fileInfo == null) {
 				console.log('  No file to save');
-				document.querySelector(".wksp-blank-page").innerHTML = rhit.wkspConstants.TEXTAREA_HTML;
+				document.querySelector(rhit.HTML_ELEMENTS.BLANK_WORKSPACE_PAGE).innerHTML = rhit.wkspConstants.TEXTAREA_HTML;
 				let name = document.querySelector('#inputTxtName').value;
 				// Create a new text file
 				this.manager.createFile(rhit.FILE_TYPES.TEXT, name);
@@ -416,7 +418,7 @@ rhit.WorkspacePageController = class {
 
 			this.manager.saveOldFile().then(() => {
 				console.log("here");
-				document.querySelector(".wksp-blank-page").innerHTML = rhit.wkspConstants.TEXTAREA_HTML;
+				document.querySelector(rhit.HTML_ELEMENTS.BLANK_WORKSPACE_PAGE).innerHTML = rhit.wkspConstants.TEXTAREA_HTML;
 				let name = document.querySelector('#inputTxtName').value;
 				// Create a new text file
 				this.manager.createFile(rhit.FILE_TYPES.TEXT, name);
@@ -427,6 +429,17 @@ rhit.WorkspacePageController = class {
 
 		// Create new canvas
 		document.querySelector('#submitCreateCanvas').addEventListener('click', ()=> {
+
+			if (this.manager._fileInfo == null) {
+				console.log('No file to save');
+				this.setCanvasHTML();
+				let name = document.querySelector('#inputCanvasName').value;
+				// Create a new canvas file
+				this.manager.createFile(rhit.FILE_TYPES.CANVAS, name).then(() => {
+					this.updateView();
+				});
+				return;
+			}
 			// Save old file to database and storage
 			this.manager.saveOldFile().then(() => {
 				this.setCanvasHTML();
@@ -440,9 +453,25 @@ rhit.WorkspacePageController = class {
 		});
 
 		// Upload new PDF
-		document.querySelector("#wkspPDF").addEventListener('click', ()=> {
+		document.querySelector("#submitCreatePDF").addEventListener('click', ()=> {
+
+			if (this.manager._fileInfo == null) {
+
+				console.log('No file to save');
+				let newFile = document.querySelector(rhit.HTML_ELEMENTS.PDF_UPLOAD_ID).files[0];
+				let newName = document.querySelector('#inputPdfName').value;
+				if (!newFile || !newName) {
+					console.log('No file or name was provided');
+					alert('Give me a fucking pdf and name');
+				}
+				this.manager.uploadPDF(newFile, newName);
+				document.querySelector(rhit.HTML_ELEMENTS.BLANK_WORKSPACE_PAGE).innerHTML = `${rhit.wkspConstants.PDF_HTML}`;
+				this.updateView();
+				return;
+
+			}
 			this.manager.saveOldFile().then(() => {
-				document.querySelector(".wksp-blank-page").innerHTML = `${rhit.wkspConstants.PDF_HTML}`;
+				document.querySelector(rhit.HTML_ELEMENTS.BLANK_WORKSPACE_PAGE).innerHTML = `${rhit.wkspConstants.PDF_HTML}`;
 				this.updateView();
 			});
 			
@@ -560,7 +589,7 @@ rhit.WorkspacePageController = class {
 	}
 
 	setCanvasHTML() {
-		document.querySelector(".wksp-blank-page").innerHTML = `${rhit.wkspConstants.CANVAS_HTML}`;
+		document.querySelector(rhit.HTML_ELEMENTS.BLANK_WORKSPACE_PAGE).innerHTML = `${rhit.wkspConstants.CANVAS_HTML}`;
 		/**@type {HTMLCanvasElement} */
 		let canvas = document.querySelector(rhit.HTML_ELEMENTS.CANVAS_ID);
 		// Resize canvas to fit
@@ -591,7 +620,7 @@ rhit.WorkspacePageController = class {
 		for (let i=0; i<files.length; i++) {
 			const element = htmlToElement(`<div class="wksp-list-item">${files[i].name}.${files[i].type}</div>`);
 			element.addEventListener('click', () => {
-				this.manager.loadFile(files[i].type, files[i].name);
+				this.switchFiles(files[i].type, files[i].name)
 			})
 			newList.appendChild(element)
 		}
@@ -602,12 +631,48 @@ rhit.WorkspacePageController = class {
 		oldList.parentElement.appendChild(newList);
 	}
 
+	// Tells the manager to save/load files and sets workspace HTML
+	switchFiles(type, name) {
+		if (this.manager._fileInfo != null) {
+			console.log(` Saving old file...`)
+			this.manager.saveOldFile().then(() => {
+				let wkspPage = document.querySelector(rhit.HTML_ELEMENTS.BLANK_WORKSPACE_PAGE);
+				switch (type) {
+					case 'txt':
+						wkspPage.innerHTML = rhit.wkspConstants.TEXTAREA_HTML;
+						break;
+					case 'cnv':
+						this.setCanvasHTML();
+						break;
+					case 'pdf':
+						wkspPage.innerHTML = rhit.wkspConstants.PDF_HTML;
+						break
+				}
+				this.manager.loadFile(type, name);
+				return;
+			});
+		}
+		let wkspPage = document.querySelector(rhit.HTML_ELEMENTS.BLANK_WORKSPACE_PAGE);
+		switch (type) {
+			case 'txt':
+				wkspPage.innerHTML = rhit.wkspConstants.TEXTAREA_HTML;
+				break;
+			case 'cnv':
+				this.setCanvasHTML();
+				break;
+			case 'pdf':
+				wkspPage.innerHTML = rhit.wkspConstants.PDF_HTML;
+				break
+		}
+		this.manager.loadFile(type, name);
+	}
+
 	setMobileFileList(files) {
 		const newList = htmlToElement('<div id="mobileFilesList"></div>');
 		for (let i=0; i<files.length; i++) {
 			const element = htmlToElement(`<div class="wksp-list-item">${files[i].name}.${files[i].type}</div>`);
 			element.addEventListener('click', () => {
-				this.manager.loadFile(files[i].type, files[i].name);
+				this.switchFiles(files[i].type, files[i].name);
 			})
 			newList.appendChild(element)
 		}
@@ -721,6 +786,10 @@ rhit.WorkspaceManager = class {
 		return file;
 	}
 
+	async uploadPDF(file, name) {
+		this._storageRef.child(name).put(file);
+	}
+
 	async loadFile(type, name) {
 
 		let url = await this.getFileURL(name);
@@ -728,22 +797,8 @@ rhit.WorkspaceManager = class {
 		/**@type {Blob} */
 		let fileBlob = await fetch(url);
 
-		// let xhr = new XMLHttpRequest();
-		// xhr.responseType = 'blob';
-		// xhr.onload = (event) => {
-		// 	fileBlob = xhr.response;
-		// };
-		// xhr.open('GET', url);
-		// xhr.send();
-
 		switch (type) {
 			case 'txt':
-				// let fr = new FileReader();
-				// fr.onload = () => {
-				// 	let result = fr.result
-				// 	console.log(`  Loading text...\n  Result from FileReader: ${result}`);
-				// 	document.querySelector(rhit.HTML_ELEMENTS.TEXT_ID).value = result;
-				// };
 				let textOne = await fileBlob.text();
 				console.log(`  Loading text...\n  Result from Blob.text(): ${textOne}`);
 				document.querySelector(rhit.HTML_ELEMENTS.TEXT_ID).value = textOne;
@@ -754,7 +809,7 @@ rhit.WorkspaceManager = class {
 			case 'cnv':
 				/** @type {HTMLCanvasElement} */
                 let canvas = document.querySelector(rhit.HTML_ELEMENTS.CANVAS_ID);
-				renderImage(canvas, fileBlob);
+				renderImage(canvas, url);
 				break;
 		}		
 	}
@@ -844,12 +899,6 @@ rhit.WorkspaceManager = class {
 		return url;
 	}
 
-	async changeFile(type, name) {
-		await this.saveOldFile();
-		// Change html
-		await this.loadFile(type, name);
-	}
-
 	beginListening(changeListener) {
 
 		this._unsubscribe = this._ref.
@@ -921,15 +970,6 @@ rhit.WorkspaceManager = class {
 		} else alert("Invalid user")
 	}
 
-	// /**
-	//  * 
-	//  * @param {string} link 
-	//  * @returns {PDFDocument}
-	//  */
-	// async loadPdf(link) {
-	// 	let pdfDoc = await PDFDocument.load(link);
-	// 	return pdfDoc;
-	// }
 	/**
 	 * @typedef {Object} FileInfo
 	 * @property {string} name
@@ -1028,13 +1068,6 @@ rhit.main = async function () {
 	/**
 	 * Initialize firebase
 	 */
-	// var firebaseConfig = {
-	// 	apiKey: 'AIzaSyCV2-UBsLgkCvlDLFqY-3OsSnZF_a5rfGo',
-	// 	authDomain: 'pickens-thorp-squadm8-csse280.firebaseapp.com',
-	// 	storageBucket: 'pickens-thorp-squadm8-csse280.appspot.com'
-	// };
-	// firebase.initializeApp(firebaseConfig);
-
 	rhit.fbAuthManager = new rhit.FbAuthManager();
 	rhit.fbAuthManager.beginListening(async function() {
 		console.log("isSignedIn = ", rhit.fbAuthManager.isSignedIn);
