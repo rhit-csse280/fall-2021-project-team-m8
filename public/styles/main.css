@@ -227,7 +227,7 @@ body {
 
 }
 
-#workspacePage .wksp-settings {
+#workspacePage .wksp-settings, #workspacepage .mobile-wksp-settings {
     background-color: lightgray;
     flex: 1 0 40%;
 
@@ -373,11 +373,16 @@ body {
     border: 3px solid black;
 }
 
-#wkspMembers {
+#wkspHeader {
+    height: 75px;
+    overflow: hidden;
+}
+
+#wkspMembers, #mobileWkspMembers {
     height: 140px;
 }
 
-#membersList {
+#membersList, #mobileMembersList {
     height: 75px;
     overflow: auto;
 }
@@ -391,12 +396,24 @@ body {
     overflow: auto;
 }
 
+#mobileWkspFiles {
+    height: 140px;
+}
+
+#mobileFilesList {
+    height: 75px;
+    overflow: auto;
+}
+
 .wksp-btn-row {
     display: flex;
     flex-direction: row;
     justify-content: flex-start;
     
-}
+} 
+
+
+
 
 /*
   Landing Page

@@ -472,6 +472,7 @@ rhit.WorkspacePageController = class {
 		document.querySelector("#submitColor").addEventListener('click', () => {
 			this._color = document.querySelector("#inputColor").value;
 			document.querySelector("#color").style.color = this._color;
+			document.querySelector("#colorMobile").style.color = this._color;
 		})
 
 		document.querySelector("#brushSmall").addEventListener('click', () => {
@@ -480,6 +481,7 @@ rhit.WorkspacePageController = class {
 				button.classList.remove("brush-selected")
 			}
 			document.querySelector("#brushSmall").classList.add("brush-selected");
+			document.querySelector("#brushSmallMobile").classList.add("brush-selected");
 		});
 
 		document.querySelector("#brushMedium").addEventListener('click', () => {
@@ -488,6 +490,7 @@ rhit.WorkspacePageController = class {
 				button.classList.remove("brush-selected")
 			}
 			document.querySelector("#brushMedium").classList.add("brush-selected");
+			document.querySelector("#brushMediumMobile").classList.add("brush-selected");
 		});
 
 		document.querySelector("#brushLarge").addEventListener('click', () => {
@@ -496,11 +499,52 @@ rhit.WorkspacePageController = class {
 				button.classList.remove("brush-selected")
 			}
 			document.querySelector("#brushLarge").classList.add("brush-selected");
+			document.querySelector("#brushMobile").classList.add("brush-selected");
 		});
 
 		document.querySelector("#erase").addEventListener('click', () => {
 			this._color = '#FFFFFF';
 			document.querySelector("#color").style.color = this._color;
+			document.querySelector("#colorMobile").style.color = this._color;
+		})
+
+		/**
+		 * ###############################
+		 * Mobile Buttons
+		 * ###############################
+		 */
+
+		document.querySelector("#brushSmallMobile").addEventListener('click', () => {
+			this._brushSize = 5;
+			for (let button of document.querySelectorAll(".brush")) {
+				button.classList.remove("brush-selected")
+			}
+			document.querySelector("#brushSmallMobile").classList.add("brush-selected");
+			document.querySelector("#brushSmall").classList.add("brush-selected");
+		});
+
+		document.querySelector("#brushMediumMobile").addEventListener('click', () => {
+			this._brushSize = 10;
+			for (let button of document.querySelectorAll(".brush")) {
+				button.classList.remove("brush-selected")
+			}
+			document.querySelector("#brushMediumMobile").classList.add("brush-selected");
+			document.querySelector("#brushMedium").classList.add("brush-selected");
+		});
+
+		document.querySelector("#brushLargeMobile").addEventListener('click', () => {
+			this._brushSize = 15;
+			for (let button of document.querySelectorAll(".brush")) {
+				button.classList.remove("brush-selected")
+			}
+			document.querySelector("#brushLargeMobile").classList.add("brush-selected");
+			document.querySelector("#brushLarge").classList.add("brush-selected");
+		});
+
+		document.querySelector("#eraseMobile").addEventListener('click', () => {
+			this._color = '#FFFFFF';
+			document.querySelector("#color").style.color = this._color;
+			document.querySelector("#colorMobile").style.color = this._color;
 		})
 	}
 
@@ -547,6 +591,22 @@ rhit.WorkspacePageController = class {
 		oldList.parentElement.appendChild(newList);
 	}
 
+	setMobileFileList(files) {
+		const newList = htmlToElement('<div id="mobileFilesList"></div>');
+		for (let i=0; i<files.length; i++) {
+			const element = htmlToElement(`<div class="wksp-list-item">${files[i].name}.${files[i].type}</div>`);
+			element.addEventListener('click', () => {
+				this.manager.loadFile(files[i].type, files[i].name);
+			})
+			newList.appendChild(element)
+		}
+
+		const oldList = document.querySelector("#mobileFilesList");
+		oldList.removeAttribute("id");
+		oldList.hidden = true;
+		oldList.parentElement.appendChild(newList);
+	}
+
 	async setMemberList(members, wkspId) {
 		let wkspName;
 		await firebase.firestore().collection(rhit.FB_COLLECTIONS.WKSP).doc(wkspId).get()
@@ -560,6 +620,7 @@ rhit.WorkspacePageController = class {
 		}
 
 		document.querySelector("#membersList").innerHTML = memberString;
+		document.querySelector("#mobileMembersList").innerHTML = memberString;
 	}
 
 	/**
@@ -599,7 +660,9 @@ rhit.WorkspacePageController = class {
 
 	async updateView() {
 		this.setMemberList(await rhit.getWkspMembers(this._wkspId), this._wkspId);
-		this.setFileList(await rhit.getWkspFiles(this._wkspId));
+		let files = await rhit.getWkspFiles(this._wkspId);
+		this.setFileList(files);
+		this.setMobileFileList(files);
 	}
 }
 
@@ -897,13 +960,12 @@ rhit.WorkspaceManager = class {
 	});
 
 	let members = [];
-	firebase.firestore().collection(rhit.FB_COLLECTIONS.USERS).where(`wksp-${wkspName}`, `==`, `${wkspId}`).get()
+	await firebase.firestore().collection(rhit.FB_COLLECTIONS.USERS).where(`wksp-${wkspName}`, `==`, `${wkspId}`).get()
 		.then(querySnapshot => {
 			querySnapshot.docs.forEach(doc => {
 				members.push(doc.get('uid'));
 			});
 		});
-	
 	return members;
 
 }

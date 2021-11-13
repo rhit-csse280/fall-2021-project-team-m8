@@ -90,7 +90,7 @@
             <button id="wkspTextMobile" class="btn" data-toggle="modal" data-target="#createText">Text</button>
             <button id="wkspPDFMobile" class="btn" data-toggle="modal" data-target="#uploadPDF">Pdf</button>
             <button id="wkspCanvasMobile" class="btn" data-toggle="modal" data-target="#createCanvas">Draw</button>
-            <button id="wkspOptionsMobile" class="btn"><i class="material-icons">menu</i></button>
+            <button id="wkspOptionsMobile" class="btn" data-toggle="modal" data-target="#mobileOptions"><i class="material-icons">menu</i></button>
           </div>
         </div>
     
@@ -219,35 +219,35 @@ aria-hidden="true"
   </div>
   </div>
 
-    <!-- Modal -->
-    <div
-    class="modal fade"
-    id="uploadPDF"
-    tabindex="-1"
-    aria-labelledby="Upload PDF"
-    aria-hidden="true"
-    >
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">New PDF</h5>
-        </div>
-        <div class="modal-body">
-          <div class="form-group bmd-form-group">
-            <input type="file" id="pdfFile" name="filename">
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-dismiss="modal">
-            CANCEL
-          </button>
-          <button id="submitCreatePDF" type="button" class="btn btn-primary" data-dismiss="modal">UPLOAD</button>
+  <!-- Modal -->
+  <div
+  class="modal fade"
+  id="uploadPDF"
+  tabindex="-1"
+  aria-labelledby="Upload PDF"
+  aria-hidden="true"
+  >
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">New PDF</h5>
+      </div>
+      <div class="modal-body">
+        <div class="form-group bmd-form-group">
+          <input type="file" id="pdfFile" name="filename">
         </div>
       </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">
+          CANCEL
+        </button>
+        <button id="submitCreatePDF" type="button" class="btn btn-primary" data-dismiss="modal">UPLOAD</button>
+      </div>
     </div>
-    </div>
+   </div>
+  </div>
 
-    <!-- Modal -->
+  <!-- Modal -->
   <div
   class="modal fade"
   id="createCanvas"
@@ -302,6 +302,53 @@ aria-hidden="true"
   </div>
   </div>
 
+    <!-- Modal -->
+    <div
+    class="modal fade"
+    id="mobileOptions"
+    tabindex="-1"
+    aria-labelledby="Mobile options"
+    aria-hidden="true"
+    >
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-body">
+          <div class="mobile-wksp-settings">
+            <div id="wkspSettingsContent">
+    
+              <div class="wksp-header" id="wkspMobileHeader"></div>
+              <hr class="wksp-line">
+              <div id="mobileWkspMembers">
+                <div class="wksp-subhead">Members</div>
+                <div id="mobileMembersList"></div>
+              </div>
+              <hr class="wksp-line">
+              <div id="mobileWkspFiles">
+                <div class="wksp-subhead">Files</div>
+                <div id="mobileFilesList"></div>
+              </div>
+              <hr class="wksp-line">
+              <div class="wksp-subhead">Canvas Options</div>
+              <div class="wksp-btn-row">
+                <div class="wksp-settings-btn brush brush-selected" id="brushSmallMobile"><i class="material-icons brush-small">circle</i></div>
+                <div class="wksp-settings-btn brush" id="brushMediumMobile"><i class="material-icons brush-medium">circle</i></div>
+                <div class="wksp-settings-btn brush" id="brushLargeMobile"><i class="material-icons brush-large">circle</i></div>
+              </div>
+              <div class="wksp-btn-row">
+                <div class="wksp-settings-btn" id="colorMobile" data-dismiss="modal" data-toggle="modal" data-target="#selectColor"><i class="wksp-setting material-icons">palette</i></div>
+                <div class="wksp-settings-btn" id="eraseMobile"><i class="wksp-setting material-icons">close</i></div>
+              </div>
+    
+            </div>
+          </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+    </div>
+
+  
   
   <script src="scripts/jquery.min.js"></script>
   <script src="scripts/popper.js"></script>
