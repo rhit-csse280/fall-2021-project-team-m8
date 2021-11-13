@@ -1,0 +1,23 @@
+Hey Mitch,
+
+ The easiest way to configure your data for CORS is with the gsutil command line tool.
+ The installation instructions for gsutil are available at https://cloud.google.com/storage/docs/gsutil_install.
+ Once you've installed gsutil and authenticated with it, you can use it to configure CORS.
+ 
+ For example, if you just want to allow object downloads from your custom domain, put this data in a file named cors.json (replacing "https://example.com" with your domain):
+ [
+   {
+     "origin": ["https://example.com"],
+     "method": ["GET"],
+     "maxAgeSeconds": 3600
+   }
+ ]
+ 
+ Then, run this command (replacing "exampleproject.appspot.com" with the name of your bucket):
+ gsutil cors set cors.json gs://exampleproject.appspot.com
+ 
+ and you should be set.
+ 
+ If you need a more complicated CORS configuration, check out the docs at https://cloud.google.com/storage/docs/cross-origin#Configuring-CORS-on-a-Bucket.
+ 
+ - Spencer

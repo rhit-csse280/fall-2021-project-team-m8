@@ -422,19 +422,19 @@ rhit.WorkspacePageController = class {
 				let name = document.querySelector('#inputCanvasName').value;
 				// Create a new canvas file
 				this.manager.createFile(rhit.FILE_TYPES.CANVAS, name).then(() => {
-
+					this.updateView();
 				});
 			});
-			this.updateView();
+			
 		});
 
 		// Upload new PDF
 		document.querySelector("#wkspPDF").addEventListener('click', ()=> {
 			this.manager.saveOldFile().then(() => {
-
+				document.querySelector(".wksp-blank-page").innerHTML = `${rhit.wkspConstants.PDF_HTML}`;
+				this.updateView();
 			});
-			document.querySelector(".wksp-blank-page").innerHTML = `${rhit.wkspConstants.PDF_HTML}`;
-			this.updateView();
+			
 		});
 
 		/**
