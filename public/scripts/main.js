@@ -8,6 +8,7 @@ var rhit = rhit || {};
  */
 rhit.wkspConstants = {
 
+	PDF_HTML: '<embed id="pdfEmbed" type="application/pdf" src="" height="100%" width="100%">',
 	PDF_HTML_START: `<embed type="application/pdf" src="`,
 	PDF_HTML_END: `" height="100%" width="100%">`,
 	PDF_URL: `https://firebasestorage.googleapis.com/v0/b/pickens-thorp-squadm8-csse280.appspot.com/o/sat_score.pdf?alt=media&token=8eeb6335-d37c-431e-a57b-11cc8646386d`,
@@ -43,7 +44,8 @@ rhit.FILE_TYPES = {
 
 rhit.HTML_ELEMENTS = {
     TEXT_ID: '#textFile',
-	CANVAS_ID: '#wkspCanvas'
+	CANVAS_ID: '#wkspCanvas',
+	PDF_ID: '#pdfEmbed'
 }
 
 rhit.homePageManager;
@@ -61,6 +63,17 @@ function htmlToElement(html) {
 	html = html.trim();
 	template.innerHTML = html;
 	return template.content.firstChild;
+}
+
+// From https://stackoverflow.com/a/68497562
+function renderImage(canvas, blob) {
+    const ctx = canvas.getContext('2d')
+    const img = new Image()
+    img.onload = (event) => {
+      URL.revokeObjectURL(event.target.src) // 👈 This is important. If you are not using the blob, you should release it if you don't want to reuse it. It's good for memory.
+      ctx.drawImage(event.target, 0, 0)
+    }
+    img.src = URL.createObjectURL(blob)
 }
 
 /**
@@ -291,7 +304,7 @@ rhit.HomePageManager = class {
  rhit.buildHomePage = async function(uid) {
 	// Get a user reference to loop through for workspaces then get list of workspaces & convert to display names
 	let userData = [];
-	await firebase.firestore().collection(this.wkspConstants.USERS_REF_KEY).where(`uid`, `==`, `${uid}`).get()
+	await firebase.firestore().collection(rhit.FB_COLLECTIONS.USERS).where(`uid`, `==`, `${uid}`).get()
 	.then((querySnapshot) => {
 		if (querySnapshot.docs.length == 0) {
 			rhit.newUser(uid);
@@ -420,9 +433,7 @@ rhit.WorkspacePageController = class {
 			this.manager.saveOldFile().then(() => {
 
 			});
-			document.querySelector(".wksp-blank-page").innerHTML = `${rhit.wkspConstants.PDF_HTML_START}
-																	${rhit.wkspConstants.PDF_URL}
-																	${rhit.wkspConstants.PDF_HTML_END}`;
+			document.querySelector(".wksp-blank-page").innerHTML = `${rhit.wkspConstants.PDF_HTML}`;
 			this.updateView();
 		});
 
@@ -638,41 +649,39 @@ rhit.WorkspaceManager = class {
 
 	async loadFile(type, name) {
 
-		// Get file from storage
-		let fr = new FileReader();
-
-		fr.onload = () => {
-			let result = fr.result
-			if (type == rhit.FILE_TYPES.TEXT) {
-
-                document.querySelector(rhit.HTML_ELEMENTS.TEXT_ID).value = result;
-
-			} else if (type == rhit.FILE_TYPES.CANVAS) {
-
-                document.querySelector();
-
-            }
-		};
-
 		let url = await this.getFileURL(name);
-		let fileBlob = await fetch(url);
+		console.log(`  loadFile: Url is ${url}`);
+		/**@type {Blob} */
+		let fileBlob; // = await fetch(url);
+
+		let xhr = new XMLHttpRequest();
+		xhr.responseType = 'blob';
+		xhr.onload = (event) => {
+			fileBlob = xhr.response;
+		};
+		xhr.open('GET', url);
+		xhr.send();
 
 		switch (type) {
 			case 'txt':
-				fr.readAsText(fileBlob.text())
+				let fr = new FileReader();
+				fr.onload = () => {
+					let result = fr.result
+					if (type == rhit.FILE_TYPES.TEXT) {
+						document.querySelector(rhit.HTML_ELEMENTS.TEXT_ID).value = result;
+					}
+				};
+				fr.readAsText(await fileBlob.text())
 				break;
 			case 'pdf':
-				let buff = await fileBlob.arrayBuffer()
-				fr.readAsArrayBuffer(buff);
+				document.querySelector(rhit.HTML_ELEMENTS.PDF_ID).setAttribute('src', url)
 				break;
 			case 'cnv':
-				// Draw old image on new canvas ( must be after setting canvas)
-				fr;
+				/** @type {HTMLCanvasElement} */
+                let canvas = document.querySelector(rhit.HTML_ELEMENTS.CANVAS_ID);
+				renderImage(canvas, fileBlob);
 				break;
-		}
-
-
-		
+		}		
 	}
 
 	async createFile(type, name) {
@@ -714,15 +723,30 @@ rhit.WorkspaceManager = class {
 					file = this.createFileObj(text, this._fileInfo.name);
 					break;
 				case ('cnv'):
+					/** @type {HTMLCanvasElement} */
+					let canvas = document.querySelector(rhit.HTML_ELEMENTS.CANVAS_ID);
+					if (!(canvas instanceof HTMLCanvasElement)) {
+						console.log(`  SaveFile: bad canvas element`);
+						return;
+					}
+					canvas.toBlob(blob => {
+						file = blob;
+						console.log(`  SaveFile:\n    Blob: ` + blob);
+						console.log(`  SaveFile:\n    File: ` + file);
+					})
 					break;
 				case ('pdf'):
-
+					// Nothing... URL is already saved in file ref
 					break;
 			}
 	
+			console.log(`  SaveFile: Got past switch statement`)
 			let path = this._fileInfo.ref;
 			this._storageRef.child(path).put(file).then(snapshot => {
 				console.log(`  SaveFile: File saved at ${path}`);
+			}).catch(err => {
+				console.log(`  SaveFile: Error saving file`);
+				console.log(err);
 			});
 			resolve();
 		})
@@ -730,9 +754,10 @@ rhit.WorkspaceManager = class {
   
 	// Gets a new document
 	async getFileURL(fileName) {
-		let path = `${this.wkspId}/${fileName}`;
+		let path = `${fileName}`;
 		let fileRef = await this._storageRef.child(path);
 		let url = await fileRef.getDownloadURL();
+		console.log(url);
 		return url;
 	}
 
