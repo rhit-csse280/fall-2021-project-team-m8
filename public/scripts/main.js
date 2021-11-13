@@ -72,6 +72,7 @@ function htmlToElement(html) {
 function renderImage(canvas, url) {
     const ctx = canvas.getContext('2d')
     var img = new Image()
+	img.crossOrigin="anonymous";
     img.onload = (event) => {
       URL.revokeObjectURL(event.target.src) // 👈 This is important. If you are not using the blob, you should release it if you don't want to reuse it. It's good for memory.
       ctx.drawImage(event.target, 0, 0)
@@ -462,7 +463,7 @@ rhit.WorkspacePageController = class {
 				let newName = document.querySelector('#inputPdfName').value;
 				if (!newFile || !newName) {
 					console.log('No file or name was provided');
-					alert('Give me a fucking pdf and name');
+					alert('Please give me a pdf and name');
 				}
 				this.manager.uploadPDF(newFile, newName).then(() => {
 					document.querySelector(rhit.HTML_ELEMENTS.BLANK_WORKSPACE_PAGE).innerHTML = `${rhit.wkspConstants.PDF_HTML}`;
@@ -666,6 +667,7 @@ rhit.WorkspacePageController = class {
 				return;
 			});
 		}
+		console.log(' No file to save');
 		let wkspPage = document.querySelector(rhit.HTML_ELEMENTS.BLANK_WORKSPACE_PAGE);
 		switch (type) {
 			case 'txt':
@@ -806,8 +808,8 @@ rhit.WorkspaceManager = class {
 
 	async loadFile(type, name) {
 
+		console.log('  loadFile: Started');
 		let url = await this.getFileURL(name);
-		console.log(`  loadFile: Url is ${url}`);
 		/**@type {Blob} */
 		let fileBlob = await fetch(url);
 
@@ -825,7 +827,9 @@ rhit.WorkspaceManager = class {
                 let canvas = document.querySelector(rhit.HTML_ELEMENTS.CANVAS_ID);
 				renderImage(canvas, url);
 				break;
-		}		
+		}
+		this._fileInfo = this._makeFileInfo(name, type, )
+		console.log('  loadFile: Finished');		
 	}
 
 	async createFile(type, name) {
@@ -834,30 +838,30 @@ rhit.WorkspaceManager = class {
 			let id;
 			this._filesRef.add({
 				[rhit.FB_FILES.FILES_NAME]: name,
-				[rhit.FB_FILES.FILES_REF]: `${this._wkspId}/${name}`, // Ref will be created upon first save
+				[rhit.FB_FILES.FILES_REF]: name, // Ref will be created upon first save
 				[rhit.FB_FILES.FILES_TYPE]: type,
 				[rhit.FB_FILES.FILES_WKSP]: this._wkspId
 			}).then(docRef => {
 				id = docRef.id;
 			});
 
-			this._fileInfo = this._makeFileInfo(name, type, id, `${name}`);
+			this._fileInfo = this._makeFileInfo(name, type);
 			resolve();
 		});
 			
-	}
-
-	
+	}	
 
 	/**
 	 * Saves a document
 	 */
 	async saveOldFile() {
 		return new Promise((resolve, reject)=>{
-			if (this._fileInfo == null) resolve(); // For loading first file
-
-
-			let path = this._fileInfo.ref;
+			console.log('  saveOldFile(): Started');
+			if (this._fileInfo == null) {
+				console.log('First file');
+				resolve(); // For loading first file
+			}
+			let path = this._fileInfo.name;
 			switch (this._fileInfo.type) {
 				case ('txt'):
 					let text = document.querySelector('#textFile').value;
@@ -866,12 +870,14 @@ rhit.WorkspaceManager = class {
 						return;
 					}
 					let saveFile = this.createFileObj(text, this._fileInfo.name);
-					this._storageRef.child(path).put(saveFile).then(snapshot => {
-						console.log(`  SaveFile: File saved at ${path}`);
-					}).catch(err => {
-						console.log(`  SaveFile: Error saving file`);
-						console.log(err);
-					});
+					this._storageRef.child(path).delete().then(() => {
+						this._storageRef.child(path).put(saveFile).then(snapshot => {
+							console.log(`  SaveFile: File saved at ${path}`);
+						}).catch(err => {
+							console.log(`  SaveFile: Error saving file`);
+							console.log(err);
+						});
+					})
 					break;
 				case ('cnv'):
 					/** @type {HTMLCanvasElement} */
@@ -886,12 +892,15 @@ rhit.WorkspaceManager = class {
 							reject(new Error('Invalid Canvas Blob'));
 						}
 						console.log(`  SaveFile:\n    Blob: ` + blob);
-						this._storageRef.child(path).put(blob).then(snapshot => {
-							console.log(`  SaveFile: File saved at ${path}`);
-						}).catch(err => {
-							console.log(`  SaveFile: Error saving file`);
-							console.log(err);
-						});
+						this._storageRef.child(path).delete().then(() => {
+							this._storageRef.child(path).put(blob).then(snapshot => {
+								console.log(`  SaveFile: File saved at ${path}`);
+							}).catch(err => {
+								console.log(`  SaveFile: Error saving file`);
+								console.log(err);
+							});
+						})
+						
 					});
 					break;
 				case ('pdf'):
@@ -901,15 +910,12 @@ rhit.WorkspaceManager = class {
 			resolve();
 		});
 	}
-
-	
-  
+ 
 	// Gets a new document
 	async getFileURL(fileName) {
 		let path = `${fileName}`;
 		let fileRef = await this._storageRef.child(path);
 		let url = await fileRef.getDownloadURL();
-		console.log(url);
 		return url;
 	}
 
@@ -988,17 +994,13 @@ rhit.WorkspaceManager = class {
 	 * @typedef {Object} FileInfo
 	 * @property {string} name
 	 * @property {string} type
-	 * @property {string} id
-	 * @property {string} ref
 	 * 
 	 * @param {string} name
 	 * @param {string} type
-	 * @param {string} id
-	 * @param {string} ref
 	 * @returns {FileInfo}
 	 */
-	_makeFileInfo(name, type, id, ref) {
-		return {name: name, type: type, id: id, ref: ref};
+	_makeFileInfo(name, type) {
+		return {name: name, type: type};
 	}
 
 
