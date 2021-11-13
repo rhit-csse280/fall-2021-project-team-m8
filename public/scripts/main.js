@@ -11,13 +11,7 @@ rhit.wkspConstants = {
 	PDF_HTML_START: `<embed type="application/pdf" src="`,
 	PDF_HTML_END: `" height="100%" width="100%">`,
 	PDF_URL: `https://firebasestorage.googleapis.com/v0/b/pickens-thorp-squadm8-csse280.appspot.com/o/sat_score.pdf?alt=media&token=8eeb6335-d37c-431e-a57b-11cc8646386d`,
-	TEXT_HTML_START: `<embed type="application/pdf" src="`,
-	TEXT_HTML_END: `" height="100%" width="100%">`,
-	TEXT_URL: `https://firebasestorage.googleapis.com/v0/b/pickens-thorp-squadm8-csse280.appspot.com/o/text.txt?alt=media&token=5242db20-af80-47e7-9e73-5a6a28693b24`,
-	CANVAS_HTML: `<canvas id="testCanvas" height="100%" width="100%"><div>This browser does not support our canvas feature :( Most modern browsers (Chrome, Edge, Firefox) do support this.</div></canvas>`,
-	WORKSPACES_REF_KEY: "Workspaces",
-	FILES_REF_KEY: "Files",
-	USERS_REF_KEY: "Users",
+	CANVAS_HTML: `<canvas id="wkspCanvas" height="100%" width="100%"><div>This browser does not support our canvas feature :( Most modern browsers (Chrome, Edge, Firefox) do support this.</div></canvas>`,
 	TEXTAREA_HTML: "<textarea id=\"textFile\"></textarea>"
 
 }
@@ -45,6 +39,11 @@ rhit.FILE_TYPES = {
 	TEXT: 'txt',
 	PDF:'pdf',
 	CANVAS:'cnv'
+}
+
+rhit.HTML_ELEMENTS = {
+    TEXT_ID: '#textFile',
+	CANVAS_ID: '#wkspCanvas'
 }
 
 rhit.homePageManager;
@@ -356,6 +355,7 @@ rhit.WorkspacePageController = class {
 		/*
 		  Adding listeners to Workspace Page Buttons
 		*/
+		this._filesRef = firebase.firestore().collection(rhit.FB_COLLECTIONS.FILES);
 		this._wkspId = wkspId;
 		this._color = document.querySelector("#inputColor").value;
 		this._brushSize = 5;
@@ -496,7 +496,7 @@ rhit.WorkspacePageController = class {
 	setCanvasHTML() {
 		document.querySelector(".wksp-blank-page").innerHTML = `${rhit.wkspConstants.CANVAS_HTML}`;
 		/**@type {HTMLCanvasElement} */
-		let canvas = document.querySelector('#testCanvas');
+		let canvas = document.querySelector(rhit.HTML_ELEMENTS.CANVAS_ID);
 		// Resize canvas to fit
 		fitToContainer(canvas);
 		canvas.addEventListener('mousedown', (event) => {
@@ -564,7 +564,7 @@ rhit.WorkspacePageController = class {
 		 * context
 		 * @type {HTMLCanvasElement} 
 		*/
-		let canvas = document.querySelector('#testCanvas');
+		let canvas = document.querySelector(rhit.HTML_ELEMENTS.CANVAS_ID);
 		if (!canvas.getContext) {
 		console.log('Canvas not supported');
 		return;
@@ -577,12 +577,12 @@ rhit.WorkspacePageController = class {
 		context.fill();
 	}
 
-	async beginListening(listener) {
+	async beginListening() {
 		this._filesRef.onSnapshot(querySnapshot => {
 			// Update file/member list
 			// Update view
 			this.updateView();
-			listener();
+
 		});
 	}
 
@@ -643,9 +643,15 @@ rhit.WorkspaceManager = class {
 
 		fr.onload = () => {
 			let result = fr.result
-			if (typeof result === 'string' || result instanceof String) {
-				this._fileInfo = this._makeFileInfo(name, type, )
-			}
+			if (type == rhit.FILE_TYPES.TEXT) {
+
+                document.querySelector(rhit.HTML_ELEMENTS.TEXT_ID).value = result;
+
+			} else if (type == rhit.FILE_TYPES.CANVAS) {
+
+                document.querySelector();
+
+            }
 		};
 
 		let url = await this.getFileURL(name);
@@ -688,22 +694,7 @@ rhit.WorkspaceManager = class {
 			
 	}
 
-	/**
-	 * @typedef {Object} FileInfo
-	 * @property {string} name
-	 * @property {string} type
-	 * @property {string} id
-	 * @property {string} ref
-	 * 
-	 * @param {string} name
-	 * @param {string} type
-	 * @param {string} id
-	 * @param {string} ref
-	 * @returns {FileInfo}
-	 */
-	_makeFileInfo(name, type, id, ref) {
-		return {name: name, type: type, id: id, ref: ref};
-	}
+	
 
 	/**
 	 * Saves a document
@@ -831,6 +822,23 @@ rhit.WorkspaceManager = class {
 	// 	let pdfDoc = await PDFDocument.load(link);
 	// 	return pdfDoc;
 	// }
+	/**
+	 * @typedef {Object} FileInfo
+	 * @property {string} name
+	 * @property {string} type
+	 * @property {string} id
+	 * @property {string} ref
+	 * 
+	 * @param {string} name
+	 * @param {string} type
+	 * @param {string} id
+	 * @param {string} ref
+	 * @returns {FileInfo}
+	 */
+	_makeFileInfo(name, type, id, ref) {
+		return {name: name, type: type, id: id, ref: ref};
+	}
+
 
 	/**
 	 * @typedef {Object} WorkspaceFile
@@ -864,7 +872,7 @@ rhit.WorkspaceManager = class {
 	});
 
 	let members = [];
-	firebase.firestore().collection(rhit.wkspConstants.USERS_REF_KEY).where(`wksp-${wkspName}`, `==`, `${wkspId}`).get()
+	firebase.firestore().collection(rhit.FB_COLLECTIONS.USERS).where(`wksp-${wkspName}`, `==`, `${wkspId}`).get()
 		.then(querySnapshot => {
 			querySnapshot.docs.forEach(doc => {
 				members.push(doc.get('uid'));
